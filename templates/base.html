@@ -1,0 +1,28 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+    <link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/mainpage.css') }}">
+    {% endblock %}
+</head>
+
+<body>
+
+{% block content %}    
+<!-- Top of screen navigation bar-->
+<div class="navBar" id="topNav">
+        <a href="home">Home</a></li>
+        <a href="#submitDocuments">Submit Files</a></li>
+        <a href="#myAccount">My Account</a></li>
+        <a style="float:right;border-left:1px solid white" class="active" href="#signIn">Log In</a></li>
+</div>
+{% endblock %}
+<div id="footer">
+        {% block footer %}
+        &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
+        {% endblock %}
+      </div>
+</body>
+</html>
