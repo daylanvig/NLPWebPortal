@@ -14,15 +14,16 @@
 <!-- Top of screen navigation bar-->
 <div class="navBar" id="topNav">
         <a href="home">Home</a></li>
-        <a href="#submitDocuments">Submit Files</a></li>
-        <a href="#myAccount">My Account</a></li>
-        <a style="float:right;border-left:1px solid white" class="active" href="#signIn">Log In</a></li>
+        <a href="submitdocuments">Submit Documents</a></li>
+        <a href="account">My Account</a></li>
+        <a style="float:right;border-left:1px solid white" class="active" href="login">Log In</a></li>
 </div>
 {% endblock %}
+{% block footer %}
 <div id="footer">
-        {% block footer %}
-        &copy; Copyright 2010 by <a href="http://domain.invalid/">you</a>.
-        {% endblock %}
-      </div>
+
+        &copy; Copyright 2018 by <a href="https://github.com/daylanvig">Daylan Vig</a>.
+</div>
+{% endblock %}
 </body>
 </html>

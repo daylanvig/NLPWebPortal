@@ -1,6 +1,10 @@
 
 body {
     font-family: Arial, Helvetica, sans-serif;
+    position: relative;
+    height: 95vh;
+    padding-bottom: 25;
+    overflow: auto;
 }
 /* Top navigation bar */
 .navBar {
@@ -30,4 +34,9 @@ body {
 
 .navBar a.active {
     background-color: #ff6b1b;
+}
+
+#footer {
+    height: 25;
+    padding-top: 25vh;
 }

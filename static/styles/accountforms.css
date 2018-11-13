@@ -1,0 +1,21 @@
+#form-wrap {
+    width: 325px;           /* Set this to your convenience */
+    height: 200px;          /* Set this to your convenience */
+    left: 50%;
+    top: 50%;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    padding: 10px;
+    margin-top: 25vh;
+    margin-bottom: 25vh;
+    background-color: #1ba8ff;
+}
+
+.control-group {
+    padding-bottom: 10px;
+}
+
+h2 {  
+    color: white;
+}

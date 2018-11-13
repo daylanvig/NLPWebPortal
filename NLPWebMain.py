@@ -11,6 +11,7 @@ login_manager.login_view = 'login'
 
 #@ is decorator, it creates function definition
 @app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
+@app.route('/home')
 def homePage():
     return render_template('index.html')
 
@@ -27,7 +28,16 @@ def register():
 def login():
     if request.method == 'GET':
         return render_template('login.html')
-    return redirect(url_for('homePage'))
+    email = request.form['email']
+    password = request.form['password']
+    registered_user = User.query.filter_by(email=email,password=password).first()
+    if registered_user is None:
+        flash('Email or Password is invalid' , 'error')
+        return redirect(url_for('login'))
+    login_user(registered_user)
+    return redirect(request.args.get('next') or url_for('index'))
+
+
 
 if __name__ == '__main__':
     app.run()
