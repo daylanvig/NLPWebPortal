@@ -1,15 +1,16 @@
-from flask import Flask, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
-from User import User
+from database import init_db
+from user import User
 
 app = Flask(__name__) #create website in variable called app
-db = SQLAlchemy()
+init_db()
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-#@ is decorator, it creates function definition
+    
 @app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
 @app.route('/home')
 def homePage():
@@ -37,7 +38,10 @@ def login():
     login_user(registered_user)
     return redirect(request.args.get('next') or url_for('index'))
 
-
+@app.route("/logout")
+def logOut():
+    logout_user()
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run()

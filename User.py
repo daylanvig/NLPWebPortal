@@ -1,31 +1,33 @@
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from database import db
 
-db = SQLAlchemy()
+class User(db):
+    __tablename__ = 'users'
+    id = Column('user_id', Integer, primary_key=True)
+    email = Column('email', String(50), unique=True, index=True)
+    password = Column('password', String)
+    models = relationship('LanguageModel', backref='user', lazy='dynamic')
 
-class User(db.Model):
-
-    __tablename__ = 'user'
-
-    id = db.Column('user_id', db.Integer, primary_key=True)
-    email = db.Column('email', db.String(50), unique=True, index=True)
-    password = db.Column('password', db.String)
-  
     def __init__(self, email, password):
         self.email = email
-        self.password = password
+        self.password = password        
 
     def is_active(self):
-        """True, as all users are active."""
         return True
 
     def get_id(self):
-        """Return the email address to satisfy Flask-Login's requirements."""
-        return self.id
+        return unicode(self.id)
 
     def is_authenticated(self):
-        """Return True if the user is authenticated."""
         return True
 
     def is_anonymous(self):
-        """False, as anonymous users aren't supported."""
         return False
+
+class LanguageModel(db):
+    __tablename__ = "LanguageModel"
+
+    id = Column('model_id', Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+
