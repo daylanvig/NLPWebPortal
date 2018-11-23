@@ -1,8 +1,9 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from database import db
+from NLPWebPortal import db
 
-class User(db):
+
+class User(db.Model):
     __tablename__ = 'users'
     id = Column('user_id', Integer, primary_key=True)
     email = Column('email', String(50), unique=True, index=True)
@@ -17,7 +18,7 @@ class User(db):
         return True
 
     def get_id(self):
-        return unicode(self.id)
+        return (self.id)
 
     def is_authenticated(self):
         return True
@@ -25,7 +26,7 @@ class User(db):
     def is_anonymous(self):
         return False
 
-class LanguageModel(db):
+class LanguageModel(db.Model):
     __tablename__ = "LanguageModel"
 
     id = Column('model_id', Integer, primary_key=True)

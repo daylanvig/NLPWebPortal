@@ -13,10 +13,13 @@
 {% block content %}    
 <!-- Top of screen navigation bar-->
 <div class="navBar" id="topNav">
-        <a href="home">Home</a></li>
-        <a href="submitdocuments">Submit Documents</a></li>
+        <a href="/" class="active">Home</a></li>
+        <a href="fileUpload">Upload Training Files</a></li>
         <a href="account">My Account</a></li>
         <a style="float:right;border-left:1px solid white" class="active" href="login">Log In</a></li>
+        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
+                <i class="fa fa-bars"></i>
+        </a>
 </div>
 {% endblock %}
 {% block footer %}
@@ -24,6 +27,8 @@
 
         &copy; Copyright 2018 by <a href="https://github.com/daylanvig">Daylan Vig</a>.
 </div>
+<script type=text/javascript src="{{
+        url_for('static', filename='jquery.js') }}"></script>
 {% endblock %}
 </body>
 </html>
