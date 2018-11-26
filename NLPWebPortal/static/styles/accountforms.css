@@ -1,6 +1,5 @@
 #form-wrap {
-    width: 325px;           /* Set this to your convenience */
-    height: 200px;          /* Set this to your convenience */
+    width: 375px;           /* Set this to your convenience */
     left: 50%;
     top: 50%;
     margin-left: auto;
@@ -10,6 +9,7 @@
     margin-top: 25vh;
     margin-bottom: 25vh;
     background-color: #1ba8ff;
+    border-radius: 25px;
 }
 
 .control-group {
@@ -17,5 +17,13 @@
 }
 
 h2 {  
+    color: white;
+}
+
+a {
+    color: white;
+}
+
+a:visited {
     color: white;
 }

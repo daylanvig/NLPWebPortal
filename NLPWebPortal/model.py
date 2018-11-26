@@ -5,10 +5,9 @@ from NLPWebPortal import db
 
 class User(db.Model):
     __tablename__ = 'users'
-    id = Column('user_id', Integer, primary_key=True)
-    email = Column('email', String(50), unique=True, index=True)
-    password = Column('password', String)
-    models = relationship('LanguageModel', backref='user', lazy='dynamic')
+    id = db.Column('user_id', Integer, primary_key=True)
+    email = db.Column('email', String(50), unique=True, index=True)
+    password = db.Column('password', String)
 
     def __init__(self, email, password):
         self.email = email
@@ -25,10 +24,3 @@ class User(db.Model):
 
     def is_anonymous(self):
         return False
-
-class LanguageModel(db.Model):
-    __tablename__ = "LanguageModel"
-
-    id = Column('model_id', Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.user_id'))
-

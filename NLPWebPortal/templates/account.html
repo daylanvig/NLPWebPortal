@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/accountDetails.css') }}">
+</head>
+
+{% extends "base.html" %}
+{% block content %}
+ {{ super() }} <!-- Navigation bar -->
+<div>
+    <h1>Account Summary</h1> 
+    <!-- Put in details about account: registration, email, password blocked, change button, delete -->
+    <h2>User Profile</h2>
+    
+    <!-- Placeholder until account management can be integrated-->
+    <h2>Files Uploaded</h2>  <!-- Make me into a popup link/click to expand -->
+    <h2>Queries Submitted</h2> <!-- me too! -->
+</div>
+ {% endblock %}
+</html>

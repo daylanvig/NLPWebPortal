@@ -5,6 +5,8 @@
 <head>
     {% block head %}
     <link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/mainpage.css') }}">
+    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.5.0/css/all.css' integrity='sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU' crossorigin='anonymous'>
+    <script src="{{ url_for('static', filename='jquery.js') }}"></script>
     {% endblock %}
 </head>
 
@@ -13,12 +15,12 @@
 {% block content %}    
 <!-- Top of screen navigation bar-->
 <div class="navBar" id="topNav">
-        <a href="/" class="active">Home</a></li>
-        <a href="fileUpload">Upload Training Files</a></li>
-        <a href="account">My Account</a></li>
-        <a style="float:right;border-left:1px solid white" class="active" href="login">Log In</a></li>
-        <a href="javascript:void(0);" class="icon" onclick="myFunction()">
-                <i class="fa fa-bars"></i>
+        <a href="/" class="active">Home</a>
+        <a href="fileUpload">Upload Training Files</a>
+        <a href="account">My Account</a>
+        <a href="login" class="active" id ="log">Log In</a>
+        <a href="javascript:void(0);" class="icon" onclick="hideMenuButtons()">
+                <i class="fas fa-align-justify"></i>
         </a>
 </div>
 {% endblock %}
@@ -27,8 +29,21 @@
 
         &copy; Copyright 2018 by <a href="https://github.com/daylanvig">Daylan Vig</a>.
 </div>
-<script type=text/javascript src="{{
-        url_for('static', filename='jquery.js') }}"></script>
+<script>
+        function hideMenuButtons() {
+                var menuBar = document.getElementById("topNav");
+
+                if(menuBar.className === "navBar") {
+                        menuBar.className += " responsive";
+                        
+                }else {
+                        menuBar.className = "navBar";
+                }
+
+        }
+</script>   
+
+
 {% endblock %}
 </body>
 </html>

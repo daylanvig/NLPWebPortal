@@ -38,9 +38,12 @@ def logOut():
     return redirect(url_for('index'))
 
 @app.route("/account")
-@login_required
 def account():
-    return render_template('accountSummary.html')     ##TODO make account page
+    return render_template('account.html')     
+
+@app.route("/fileUpload", methods=["GET", "POST"])
+def fileUpload():
+    return render_template('fileUpload.html')
 
 if __name__ == '__main__':
     app.run()

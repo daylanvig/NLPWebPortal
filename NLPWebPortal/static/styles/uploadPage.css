@@ -1,0 +1,76 @@
+html, body {
+    height: 100%;
+}
+
+h1 {
+    color:  white;
+}
+
+.box {
+    min-width: 300px; 
+    width: 30vw;
+    height: 30vh;
+    min-height: 300px; 
+    margin: 20px auto; 
+    margin-top: 20vh;
+    text-align: center;
+    background-color: white;
+}
+
+/* hide all until needed */
+.box__dragndrop,
+.box__uploading,
+.box__success,
+.box__error {
+  display: none;
+}
+
+.box.has-advanced-upload {
+    background-color: white;
+    border-style: dashed;
+    border-width: 5px;
+    border-radius: 25px;
+    border-color: #1ba8ff
+}
+
+.box.has-advanced-upload .box__dragndrop {
+    display: inline;
+}
+
+.box.is-dragover {
+    background-color: #1785c9;
+}
+
+/* Hide the select file button */
+.box__file { 
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+	overflow: hidden;
+	position: absolute;
+	z-index: -1;
+}
+
+.box__file + label {
+    font-size: 1.25em;
+    font-weight: 700;
+    color: #1ba8ff;
+    display: inline-block;
+    cursor: pointer; /* accessibility */
+}
+
+strong {
+    text-decoration: underline;
+}
+
+.box__input {
+    padding-top: 25%;
+}
+
+.box__button {
+    margin-top: 7%;
+    background-color: #ff6b1b;
+    color: white;
+    padding: 5px;
+}
+
