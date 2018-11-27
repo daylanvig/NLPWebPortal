@@ -77,3 +77,11 @@ body {
     height: 25;
     padding-top: 25vh;
 }
+
+.flashes {
+    background-color: #ff6b1b;
+    color: white;
+    margin: 0 0 5px 0;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}

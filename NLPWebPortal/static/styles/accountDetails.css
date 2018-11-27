@@ -2,3 +2,20 @@
 h1, h2 {
     color: #1785c9;
 }
+
+h3 {
+
+}
+.form-popup {
+    display: none;
+    position: fixed;
+    bottom: 50vh;
+    right: 50vh;
+    border: 3px solid #f1f1f1;
+    border-radius: 25px;
+    z-index: 9;
+    text-align: center;
+    padding: 40px;
+    background-color: #1ba8ff;
+    color: white;
+}

@@ -10,7 +10,7 @@
 {{ super() }} <!-- Nav bar-->
 
 <div id="form-wrap">
-    <form action="" method=post class="form-horizontal">
+    <form name="registrationForm" action="" method=post class="form-horizontal" onsubmit="return validateForm()">
     <h2>Sign up for NLP WebApp</h2>
     <div class="control-group">
         <div class="controls">
@@ -35,7 +35,7 @@
             required>
         </div>
     </div>
-
+    <span id='message'></span>
  
     <div class="control-group">
         <div class="controls">
@@ -45,6 +45,58 @@
     <a id="linkRegister" href="/login">Already have an account? Click here to sign in</a>
     </form>
 </div>
+
+<script>
+
+    /* verify passwords match */
+    $('#password, #passwordConfirm').on('keyup', function () {
+        if ($('#password').val() == $('#passwordConfirm').val()) {
+            $('#message').html('').css('color', 'white');
+        } else 
+            $('#message').html('Passwords do not match').css('color', 'white');
+    });
+
+    function validateForm() {
+
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        var passwordConfirm = document.getElementById('passwordConfirm').value;
+
+        /* 
+        Password requirements 
+        Can't use email
+        Must match confirmation
+        At least 8 characters in length
+        At least one letter, one number
+        */
+        if(password == email){
+            $('#message').html('Password must not be identical to email.').css('color', 'white');
+            return false;
+        }
+        if(password != passwordConfirm){
+            $('#message').html('Passwords must match!').css('color', 'white');
+            return false;
+        }
+        if(password.length < 8){ 
+            $('#message').html('Password too short. Please use at least 8 characters.').css('color', 'white');
+            return false;
+        }
+        if(!(/\d/.test(password))){
+            $('#message').html('Password should contain at least one digit from 0-9.').css('color', 'white');
+            return false;
+        }
+        if(!(/\d/.test(password))){
+            $('#message').html('Password should contain at least one digit from 0-9.').css('color', 'white');
+            return false;
+        }
+        if(!(/[a-zA-Z]/.test(password))){
+            $('#message').html('Password should contain at least one character from a-z or A-Z.').css('color', 'white');
+            return false; 
+        }
+        return true;
+    }
+
+</script>
 
 {% endblock %}
 

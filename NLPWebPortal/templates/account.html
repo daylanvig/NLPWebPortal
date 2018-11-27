@@ -11,11 +11,38 @@
 <div>
     <h1>Account Summary</h1> 
     <!-- Put in details about account: registration, email, password blocked, change button, delete -->
+
+    <!-- Delete Account confirmation -->
+    <div class='form-popup' id='confirmForm'>
+        <form action="" method=post class='confirmForm'>
+            <h3 style="text-decoration: underline">Warning: This action is irreversible.</h3>
+            <h3>Confirm password to delete your account.</h3>
+            <input type="password" placeholder="Enter password" name="password" id = "password" required>
+            <div></div>
+            <button name="deletebtn" type="submit" class="btn" style='margin-top: 30px'>Confirm Delete</button>
+            <button class='btn' onclick="closeDeleteForm()">Cancel</button>
+        </form>
+    </div>
+    <button class='btn' onclick="openDeleteForm()">Delete Account</button>
+
+
     <h2>User Profile</h2>
     
     <!-- Placeholder until account management can be integrated-->
     <h2>Files Uploaded</h2>  <!-- Make me into a popup link/click to expand -->
     <h2>Queries Submitted</h2> <!-- me too! -->
 </div>
- {% endblock %}
+
+<script>
+    
+    function openDeleteForm() {
+        document.getElementById('confirmForm').style.display = 'block';
+    }
+
+    function closeDeleteForm() {
+        document.getElementById('confirmForm').style.display = 'none';
+    }
+</script>
+{% endblock %}
+
 </html>
