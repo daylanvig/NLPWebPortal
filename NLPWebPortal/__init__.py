@@ -24,7 +24,6 @@ login_manager.login_view = 'login'
 #Imports
 import NLPWebPortal.routes
 import NLPWebPortal.model
-import NLPWebPortal.accountHelper
 
 #initialize database
 db.create_all()

@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
 from NLPWebPortal import app, db, login_manager
 from NLPWebPortal.model import User
-
+from datetime import datetime
 
 @app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
 @app.route('/index')
@@ -34,14 +34,18 @@ def login():
 
     email = request.form['email']
     password = request.form['password']
+    
+    #Choose to remain logged in
     remember_me = False
     if 'remember_me' in request.form:
         remember_me = True
-        
+
     registered_user = User.query.filter_by(email=email).first()
 
-    if(registered_user.check_password(password)): #If a user email and password works, log in and redirect
+    #Verify password, log, redirect
+    if(registered_user.check_password(password)):
         login_user(registered_user, remember = remember_me)
+        registered_user.last_seen = datetime.utcnow
         return redirect(request.args.get('next') or url_for('index'))
     else:
         flash("Error: Invalid Credentials")
@@ -52,9 +56,11 @@ def login():
 @app.route("/logout")
 def logOut():
     logout_user()
+    flash('Successfully logged out.')
     return redirect(url_for('index'))
 
 @app.route("/account", methods=['GET', 'POST'])
+@login_required
 def account():
     if request.method == 'GET':
         return render_template('account.html') 

@@ -10,7 +10,6 @@ class User(db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(50), unique=True, index=True)
     pw_hash = db.Column(db.String)
-    authenticated = db.Column(db.Boolean, default=False)
     registered_on = db.Column(db.DateTime)
     last_seen = db.Column(db.DateTime)
 
@@ -26,7 +25,7 @@ class User(db.Model):
         return (self.user_id)
 
     def is_authenticated(self):
-        return self.is_authenticated
+        return True
 
     def is_anonymous(self):
         return False
