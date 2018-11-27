@@ -42,7 +42,7 @@ h1 {
 }
 
 /* Hide the select file button */
-.box__file { 
+.file2 { 
 	width: 0.1px;
 	height: 0.1px;
 	opacity: 0;

@@ -5,6 +5,7 @@ from sqlalchemy import exc
 from NLPWebPortal import app, db, login_manager
 from NLPWebPortal.model import User
 from datetime import datetime
+from werkzeug.utils import secure_filename
 
 @app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
 @app.route('/index')
@@ -54,6 +55,7 @@ def login():
 
     
 @app.route("/logout")
+@login_required
 def logOut():
     logout_user()
     flash('Successfully logged out.')
@@ -84,7 +86,11 @@ def account():
 @app.route("/fileUpload", methods=["GET", "POST"])
 @login_required
 def fileUpload():
-    return render_template('fileUpload.html')
+    if request.method == 'GET':
+        return render_template('fileUpload.html')
+    
+    file = request.files['file']
+    file.save(secure_filename(file.filename))
 
 @login_manager.user_loader
 def load_user(user_id):

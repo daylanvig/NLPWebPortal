@@ -3,7 +3,8 @@
 
 <head>
 <link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/uploadPage.css') }}">
-<script src="{{ url_for('static', filename='modernizer.js') }}"></script>
+<script src="{{ url_for('static', filename='modernizr.js') }}"></script>
+<script src="{{ url_for('static', filename='jquery.js') }}"></script>
 </head>
 
 {% extends "base.html" %}
@@ -12,8 +13,8 @@
  <form class="box" method="post" action="" enctype="multipart/form-data">
     <div class="box__input">
       <div><i class='far fa-folder-open' style='font-size: 4em; color: #1ba8ff; margin-bottom: 8%'></i></div>
-      <input class="box__file" type="file" name="files[]" id="file" data-multiple-caption="{count} files selected" multiple />
-      <label for="file"><strong>Choose a file</strong><span class="box__dragndrop"> or drag it here</span>.</label>
+      <input class="box__file" type="file" name="file" id="file" data-multiple-caption="{count} files selected" multiple />
+      <label for="file" id='fileLabel'><strong>Choose a file</strong><span class="box__dragndrop"> or drag it here</span>.</label>
       <div><button class="box__button" type="submit">Upload selected files</button></div>
     </div>
     <div class="box__uploading">Uploading&hellip;</div>
@@ -21,18 +22,20 @@
     <div class="box__error">Error! <span></span>.</div>
   </form>
   <script>
+
         /* Check if drag and drop is supported */
         var $isAdvancedUpload = function() {
-        var div = document.createElement('div');
-        return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
+            var div = document.createElement('div');
+            return (('draggable' in div) || ('ondragstart' in div && 'ondrop' in div)) && 'FormData' in window && 'FileReader' in window;
         }();
 
         var $form = $('.box');
-    
+        var $file = $('.box__file');
+
         if ($isAdvancedUpload) { 
 
             $form.addClass('has-advanced-upload'); /* loads css if supported */
-
+            
             /* functionality for drag and drop uploads */
             var droppedFiles = false;
 
@@ -41,19 +44,19 @@
                 e.stopPropagation();
             })
 
-            .on('dragover dragenter', function() {
+            .on('dragover dragenter', function() { //file dragged over
                 $form.addClass('is-dragover');
             })
 
-            .on('dragleave dragend drop', function() {
+            .on('dragleave dragend drop', function() { //file not dragged over
                 $form.removeClass('is-dragover');
             })
 
             .on('drop', function(e) {
                 droppedFiles = e.originalEvent.dataTransfer.files;
-            });
-
+            });     
             
+            $file.addClass('file2');
         }
 
         /* Show the selected file(s) that has/have been dragged and dropped */
@@ -67,7 +70,15 @@
             droppedFiles = e.originalEvent.dataTransfer.files; 
             showFiles( droppedFiles );
         });
-    
+
+        /* Labels the form with the selected file(s) if not dragged and dropped */
+        $(document).ready(function() {
+            $('#file').change(function(e) {
+                var files = e.target.files;
+                $label.text(files.length > 1 ? ($input.attr('data-multiple-caption') || '').replace( '{count}', files.length ) : files[ 0 ].name);
+            });
+        });   
+
     </script>
  {% endblock %}
 
