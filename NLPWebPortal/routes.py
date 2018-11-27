@@ -34,14 +34,19 @@ def login():
 
     email = request.form['email']
     password = request.form['password']
+    remember_me = False
+    if 'remember_me' in request.form:
+        remember_me = True
+        
     registered_user = User.query.filter_by(email=email).first()
 
     if(registered_user.check_password(password)): #If a user email and password works, log in and redirect
-        login_user(registered_user)
+        login_user(registered_user, remember = remember_me)
         return redirect(request.args.get('next') or url_for('index'))
     else:
-        flash("Invalid Credentials")
-        return redirect(url_for('login'))
+        flash("Error: Invalid Credentials")
+    
+    return redirect(url_for('login'))
 
     
 @app.route("/logout")
@@ -65,7 +70,8 @@ def account():
             return redirect(url_for('login'))
         else:
             flash("Error, invalid password")
-            return 
+    
+    return redirect(url_for('account'))
     
     
     
