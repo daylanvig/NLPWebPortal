@@ -41,6 +41,14 @@ h1 {
     background-color: #1785c9;
 }
 
+.box.is-uploading .box__input {
+    visibility: none;
+}
+
+.box.is-uploading .box__uploading {
+    display: block;
+}
+
 /* Hide the select file button */
 .file2 { 
 	width: 0.1px;

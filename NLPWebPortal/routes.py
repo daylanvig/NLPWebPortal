@@ -1,11 +1,13 @@
-from flask import Flask, redirect, render_template, request, session, url_for, flash
-from flask_login import login_user, logout_user, current_user, login_required, LoginManager
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import exc
-from NLPWebPortal import app, db, login_manager
+from NLPWebPortal import app, db, login_manager, \
+    render_template, redirect, request, session, url_for, flash,\
+    login_user, logout_user, current_user, login_required, LoginManager,\
+    SQLAlchemy, os
 from NLPWebPortal.model import User
 from datetime import datetime
+from flask import jsonify
 from werkzeug.utils import secure_filename
+
 
 @app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
 @app.route('/index')
@@ -89,8 +91,13 @@ def fileUpload():
     if request.method == 'GET':
         return render_template('fileUpload.html')
     
+    directory = os.path.join(app.config['UPLOAD_DIR'], str(current_user.get_id()))
+    if not os.path.exists(directory):
+        os.mkdir(directory)
+
     file = request.files['file']
-    file.save(secure_filename(file.filename))
+    file.save(os.path.join(directory, secure_filename(file.filename))) ##TODO method here to check for duplicates
+    return jsonify(success=True)
 
 @login_manager.user_loader
 def load_user(user_id):

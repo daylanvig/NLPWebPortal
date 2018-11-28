@@ -10,7 +10,7 @@
 {% extends "base.html" %}
 {% block content %}
  {{ super() }} <!-- Navigation bar -->
- <form class="box" method="post" action="" enctype="multipart/form-data">
+ <form class="box" method="post" action="" id= "fileForm" enctype="multipart/form-data">
     <div class="box__input">
       <div><i class='far fa-folder-open' style='font-size: 4em; color: #1ba8ff; margin-bottom: 8%'></i></div>
       <input class="box__file" type="file" name="file" id="file" data-multiple-caption="{count} files selected" multiple />
@@ -30,14 +30,14 @@
         }();
 
         var $form = $('.box');
-        var $file = $('.box__file');
+        var $file = $('#file');
+        var droppedFiles = false;
 
+        /* Support for visual changes when Javascript is supported */
         if ($isAdvancedUpload) { 
-
             $form.addClass('has-advanced-upload'); /* loads css if supported */
             
             /* functionality for drag and drop uploads */
-            var droppedFiles = false;
 
             $form.on('drag dragstart dragend dragover dragenter dragleave drop', function(e) {
                 e.preventDefault();
@@ -53,11 +53,13 @@
             })
 
             .on('drop', function(e) {
-                droppedFiles = e.originalEvent.dataTransfer.files;
+                droppedFiles = e.originalEvent.dataTransfer.files;     
             });     
             
-            $file.addClass('file2');
+            $file.addClass('file2'); //hide the file select button / use label instead
+            
         }
+
 
         /* Show the selected file(s) that has/have been dragged and dropped */
         var $input = $form.find('input[type="file"]'),
@@ -67,17 +69,53 @@
         };
 
         $form.on('drop', function(e) { 
-            droppedFiles = e.originalEvent.dataTransfer.files; 
-            showFiles( droppedFiles );
+            droppedFiles = e.originalEvent.dataTransfer.files;
+            showFiles(droppedFiles);
         });
 
         /* Labels the form with the selected file(s) if not dragged and dropped */
         $(document).ready(function() {
             $('#file').change(function(e) {
-                var files = e.target.files;
-                $label.text(files.length > 1 ? ($input.attr('data-multiple-caption') || '').replace( '{count}', files.length ) : files[ 0 ].name);
+                showFiles(e.target.files);
             });
         });   
+
+        /* AJAX Submission */
+
+        $('#fileForm').submit(function(e) {
+            e.preventDefault();
+            
+            var dataForm = new FormData($form.get(0));
+
+            if(droppedFiles){
+                $.each(droppedFiles, function(i, file){
+                    dataForm.append($input.attr('name'), file);
+                });
+            }
+
+            $.ajax({
+                url: $form.attr('action'),
+                type: $form.attr('method'),
+                data: dataForm,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                complete: function() {
+                    $form.removeClass('is-uploading');
+                },
+                success: function(data) {
+                    $form.addClass(data.success == true ? 'is-success' : 'is-error');
+                    if(!data.success){
+                        $errorMsg.text(data.error);
+                    }
+                },
+                error: function() {
+                    //TODO-------------------------------------------------------
+                }
+            });
+
+        });
 
     </script>
  {% endblock %}
