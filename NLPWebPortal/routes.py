@@ -3,7 +3,7 @@ from NLPWebPortal import app, db, login_manager, \
     render_template, redirect, request, session, url_for, flash,\
     login_user, logout_user, current_user, login_required, LoginManager,\
     SQLAlchemy, os
-from NLPWebPortal.model import User
+from NLPWebPortal.model import User, TrainingFile
 from datetime import datetime
 from flask import jsonify
 from werkzeug.utils import secure_filename
@@ -83,20 +83,26 @@ def account():
     
     return redirect(url_for('account'))
     
-    
-    
+     
 @app.route("/fileUpload", methods=["GET", "POST"])
 @login_required
 def fileUpload():
     if request.method == 'GET':
         return render_template('fileUpload.html')
     
-    directory = os.path.join(app.config['UPLOAD_DIR'], str(current_user.get_id()))
-    if not os.path.exists(directory):
-        os.mkdir(directory)
-
     file = request.files['file']
-    file.save(os.path.join(directory, secure_filename(file.filename))) ##TODO method here to check for duplicates
+    fn = secure_filename(file.filename)
+    fileMeta = fn.split('.')
+
+    #Metadata for file uploads
+    new_file = TrainingFile(current_user.get_id(), fileMeta[-2], fileMeta[-1])
+    db.session.add(new_file)
+    db.session.commit()
+
+    #This saves the file by the PKey, ensuring it's name is unique
+    #Extension is kept 
+    file.filename = str(new_file.get_id()) + '.' + fileMeta[-1] #File extension
+    file.save(os.path.join(app.config['UPLOAD_DIR'], file.filename))
     return jsonify(success=True)
 
 @login_manager.user_loader
