@@ -61,4 +61,8 @@ class TrainingFile(db.Model):
 
     def get_id(self):
         return (self.file_id)
+    
+    #for easy representation in processor
+    def name(self):
+        return (str(self.file_id) + '.' + self.extension)
 
