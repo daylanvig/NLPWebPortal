@@ -6,7 +6,14 @@ from NLPWebPortal.model import db, User, TrainingFile
 #Opens the file, reads its contents
 def load_file(file_name):
 
-    selected_file = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt') #TODO validate length, type. MIght need encoding=
+    selected_file = False
+
+    #Checks for encoding types
+    try:
+        selected_file = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt') 
+    except:
+        selected_file = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt', encoding='utf8')
+    
     file_text = selected_file.read()
     selected_file.close()
 
