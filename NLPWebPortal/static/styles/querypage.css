@@ -10,8 +10,31 @@
     margin-top: 20vh;
     margin-bottom: 10vh;
     background-color: #1ba8ff;
+    border-radius: 25px;
 }
 
 h2 {
     color: white;
+}
+
+.query_text {
+    width: 85%;
+    height: 55%;
+    resize: none;
+}
+
+.format_btn {
+
+}
+
+.submit_btn {
+    margin-left: 43vw; 
+    margin-top: 1vh; 
+    padding: 10px;
+    background-color: #ff6b1b;
+    color: white;
+}
+
+.format_bar {
+    display: flex;
 }

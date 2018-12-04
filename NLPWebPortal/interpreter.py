@@ -4,6 +4,7 @@ from keras.layers import Dense, Dropout, LSTM
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 import sys
 
 file_name = r'C:\ResearchProject\Flask\NLPWebPortal\NLPWebPortal\29763.txt'
@@ -11,7 +12,10 @@ file_selected = open(file_name)
 text = file_selected.read()
 text = text.lower()
 file_selected.close()
-words = word_tokenize(text)
+tokens = word_tokenize(text)
+alphanumeric = [word for word in tokens if word.isalpha()]
+stop_words = set(stopwords.words('english'))
+words = [w for w in alphanumeric if not w in stop_words]
 
 #mapping, word level
 word_map = sorted(list(set(words)))
@@ -40,21 +44,16 @@ model = Sequential()
 model.add(LSTM(256, input_shape=(train.shape[1], train.shape[2])))
 model.add(Dropout(0.2))
 model.add(Dense(target.shape[1], activation='softmax'))
-model.compile(loss='categorical_crossentropy', optimizer='adam')
 
-
-filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
-checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-callback_list = [checkpoint]
-
-model.fit(train, target, epochs=20, batch_size=128, callbacks=callback_list)
 
 #if predicting input here
 
 
 def predict():
-    weight_file = "weights-improvement-05-5.7929.hdf5"
+    weight_file = "weights-improvement-20-7.0875.hdf5"
     model.load_weights(weight_file)
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+
     start = np.random.randint(0, len(train_array)-1)
     pattern = train_array[start]
     print ([n_to_word[value] for value in pattern])
@@ -70,10 +69,15 @@ def predict():
         pattern.append(index)
         pattern = pattern[1:len(pattern)]
 
+
 #Checkpoints
 def modelMake():
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
     filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
     callback_list = [checkpoint]
 
     model.fit(train, target, epochs=20, batch_size=128, callbacks=callback_list)
+
+#modelMake()
+predict()

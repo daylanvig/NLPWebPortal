@@ -10,7 +10,18 @@
  {{ super() }} <!-- Navigation bar -->
  <div id="form-wrap">
     <form action= "" method=post class ="form-horizontal">
-        <h2>Submit A Query</h2>
+        <div><h2>Submit Query</h2></div>
+        <div style='height:2vh'>
+            <button class='format_btn'>Copy</button>
+            <button class='format_btn'>Paste</button>
+            <button class='format_btn'>Character</button>
+            <button class='format_btn'>Word</button>
+            <button class='format_btn'>Sentence</button>
+        </div>
+        <div style='height: 78vh'>
+            <textarea class='query_text' name='query_text' autofocus placeholder="Enter query here..."></textarea>
+            <div><button class="submit_btn" type="submit">Submit Query</button></div>
+        </div>
 
     </form>
 </div>
