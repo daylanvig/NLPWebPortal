@@ -1,4 +1,4 @@
-#form-wrap {
+#main_wrap {
     width: 60vw;           /* Set this to your convenience */
     height: 60vh;          /* Set this to your convenience */
     left: 50%;
@@ -10,31 +10,54 @@
     margin-top: 20vh;
     margin-bottom: 10vh;
     background-color: #1ba8ff;
-    border-radius: 25px;
+    border-radius: 10px;
 }
 
 h2 {
     color: white;
+    margin-top: 1vh;
+    margin-bottom: 1vh;
 }
 
-.query_text {
-    width: 85%;
-    height: 55%;
-    resize: none;
+#text_editor {
+    margin-top: 1vh;
+    width: 55vw;
+    height: 60%;    
+    margin: auto;
+}
+
+#box {
+    background-color: white;
+    height: 100%;
+}
+
+#toolbar {
+    height: 4.5vh;
+    background-color: #1785c9;
+    text-align: left;
 }
 
 .format_btn {
-
+    height: 100%;
+    color: white;
+    background-color: #1265b8;
+    margin-right: 0;
+    display: inline;
 }
 
-.submit_btn {
-    margin-left: 43vw; 
-    margin-top: 1vh; 
-    padding: 10px;
+#query_entry {
+    height: 100%;
+    background-color: white;
+    padding-left: 1vw;
+    padding-right: 1vw;
+    text-align: left;
+    
+}
+
+#submit {
+    margin-top: 3vh;
+    padding-top: 1vh;
+    padding-bottom: 1vh;
     background-color: #ff6b1b;
     color: white;
-}
-
-.format_bar {
-    display: flex;
 }

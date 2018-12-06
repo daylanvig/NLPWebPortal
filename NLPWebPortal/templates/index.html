@@ -8,22 +8,61 @@
 {% extends "base.html" %}
 {% block content %}
  {{ super() }} <!-- Navigation bar -->
- <div id="form-wrap">
-    <form action= "" method=post class ="form-horizontal">
-        <div><h2>Submit Query</h2></div>
-        <div style='height:2vh'>
-            <button class='format_btn'>Copy</button>
-            <button class='format_btn'>Paste</button>
-            <button class='format_btn'>Character</button>
-            <button class='format_btn'>Word</button>
-            <button class='format_btn'>Sentence</button>
-        </div>
-        <div style='height: 78vh'>
-            <textarea class='query_text' name='query_text' autofocus placeholder="Enter query here..."></textarea>
-            <div><button class="submit_btn" type="submit">Submit Query</button></div>
-        </div>
 
-    </form>
+ <div id="main_wrap">
+        <div id='text_editor'>
+            <h2>Submit Query</h2>
+            <div id='box'>
+            <div id='toolbar'>
+                <button class='format_btn' id='missing_character'>Character</button>
+                <button class='format_btn' id='missing_word'>Word</button>
+                <button class='format_btn' id='missing_sentence'>Sentence</button>
+            </div>
+            <div id='query_entry'></div>
+            <div style='text-align: right'><button id='submit'>Submit Query</button></div>
+            </div>
+        </div>
 </div>
- {% endblock %}
+<script>
+
+        var container = document.getElementById('query_entry');
+        var editor = new Quill(container, {
+            modules: {
+                toolbar: '#toolbar'
+            }
+        });
+
+        var missingCharBtn = document.querySelector('#missing_character');
+        missingCharBtn.addEventListener('click', function(){
+            editor.insertText(editor.getSelection(), '<C>', {
+                'background-color' : '#ffdd1b',
+                'bold' : true
+            })
+            editor.format('background-color', 'white');
+            editor.format('bold', false);
+        });
+
+        var missingWordBtn = document.querySelector('#missing_word');
+        missingWordBtn.addEventListener('click', function(){
+            editor.insertText(editor.getSelection(), '<W>', {
+                'background-color' : '#ffdd1b',
+                'bold' : true
+            })
+            editor.format('background-color', 'white');
+            editor.format('bold', false);
+        });
+
+        var missingSentBtn = document.querySelector('#missing_sentence');
+        missingSentBtn.addEventListener('click', function(){
+            editor.insertText(editor.getSelection(), '<S>', {
+                'background-color' : '#ffdd1b',
+                'bold' : true
+            })
+            editor.format('background-color', 'white');
+            editor.format('bold', false);
+        });
+
+</script>
+{% endblock %}
+
 </html>

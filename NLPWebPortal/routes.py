@@ -9,7 +9,7 @@ from flask import jsonify
 from werkzeug.utils import secure_filename
 
 
-@app.route('/') #route() is flasks way of directing the argument to the function(ie / leads to here)
+@app.route('/', methods=['GET', 'POST']) #route() is flasks way of directing the argument to the function(ie / leads to here)
 @app.route('/index')
 def index():
     return render_template('index.html')
