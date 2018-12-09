@@ -3,6 +3,7 @@
 
 <head>
 <link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/querypage.css') }}">
+<script src="{{ url_for('static', filename='jquery.js') }}"></script>
 </head>
 
 {% extends "base.html" %}
@@ -10,21 +11,27 @@
  {{ super() }} <!-- Navigation bar -->
 
  <div id="main_wrap">
-        <div id='text_editor'>
+        <form class='text_editor' id='text_editor' method='post' action="{{ url_for('query') }}">
             <h2>Submit Query</h2>
             <div id='box'>
-            <div id='toolbar'>
-                <button class='format_btn' id='missing_character'>Character</button>
-                <button class='format_btn' id='missing_word'>Word</button>
-                <button class='format_btn' id='missing_sentence'>Sentence</button>
+                <div id='toolbar'>
+                    <button class='format_btn' id='missing_character'>Character</button>
+                    <button class='format_btn' id='missing_word'>Word</button>
+                    <button class='format_btn' id='missing_sentence'>Sentence</button>
+                </div>
+                <div id='query_entry' name='query_entry'></div>
+                <div style='text-align: right'>
+                    <input type='text' id='text_value' name='text_value' style='display: none'>
+                    <input type='checkbox' name='private_check' value='1' id='private_check'> 
+                    <span id='privateFlag' style='margin-right: 10px'>Use Private Database</span>
+                    <button id='submit'>Submit Query</button>
+                </div>
             </div>
-            <div id='query_entry'></div>
-            <div style='text-align: right'><button id='submit'>Submit Query</button></div>
-            </div>
-        </div>
+        </form>
 </div>
 <script>
 
+        /* Initialize editor */
         var container = document.getElementById('query_entry');
         var editor = new Quill(container, {
             modules: {
@@ -32,9 +39,19 @@
             }
         });
 
+        /* Add buttons for functionality */
         var missingCharBtn = document.querySelector('#missing_character');
-        missingCharBtn.addEventListener('click', function(){
-            editor.insertText(editor.getSelection(), '<C>', {
+        missingCharBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            var index = editor.getSelection();
+            if(index == null){
+                index = editor.getLength();
+                if(index == 1){
+                    index = 0;
+                }
+            }
+
+            editor.insertText(index, '<C>', {
                 'background-color' : '#ffdd1b',
                 'bold' : true
             })
@@ -43,8 +60,16 @@
         });
 
         var missingWordBtn = document.querySelector('#missing_word');
-        missingWordBtn.addEventListener('click', function(){
-            editor.insertText(editor.getSelection(), '<W>', {
+        missingWordBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            var index = editor.getSelection();
+            if(index == null){
+                index = editor.getLength();
+                if(index == 1){
+                    index = 0;
+                }
+            }
+            editor.insertText(index, '<W>', {
                 'background-color' : '#ffdd1b',
                 'bold' : true
             })
@@ -53,8 +78,17 @@
         });
 
         var missingSentBtn = document.querySelector('#missing_sentence');
-        missingSentBtn.addEventListener('click', function(){
-            editor.insertText(editor.getSelection(), '<S>', {
+        missingSentBtn.addEventListener('click', function(e){
+            e.preventDefault();
+            var index = editor.getSelection();
+            if(index == null){
+                index = editor.getLength();
+                if(index == 1){
+                    index = 0;
+                }
+            }
+            
+            editor.insertText(index, '<S>', {
                 'background-color' : '#ffdd1b',
                 'bold' : true
             })
@@ -62,7 +96,24 @@
             editor.format('bold', false);
         });
 
+
+        $('#submit').click(function(e) {
+            e.preventDefault();
+
+            var query_text = {
+                'test' : 'test1',
+                'query_text' : editor.getText(),
+                'private_check' : $('#private_check').is(':checked')
+            }
+
+            $.ajax({
+                url: $('#text_editor').attr('action'),
+                type: 'post',
+                data: JSON.stringify(query_text),
+                contentType: 'application/json'
+            });
+        });
+
 </script>
 {% endblock %}
-
 </html>

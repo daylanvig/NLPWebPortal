@@ -51,9 +51,12 @@ h2 {
     padding-left: 1vw;
     padding-right: 1vw;
     text-align: left;
-    
 }
 
+#privateFlag {
+    color: white;
+
+}
 #submit {
     margin-top: 3vh;
     padding-top: 1vh;

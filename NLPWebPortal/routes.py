@@ -9,10 +9,16 @@ from flask import jsonify
 from werkzeug.utils import secure_filename
 
 
-@app.route('/', methods=['GET', 'POST']) #route() is flasks way of directing the argument to the function(ie / leads to here)
+@app.route('/')
 @app.route('/index')
 def index():
     return render_template('index.html')
+
+@app.route('/query', methods=['POST'])
+def query():
+    data = request.json
+    print(data['query_text'])
+    return jsonify(success=True)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

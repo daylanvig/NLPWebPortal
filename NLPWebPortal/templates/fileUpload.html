@@ -12,7 +12,7 @@
  {{ super() }} <!-- Navigation bar -->
  <form class="box" method="post" action="" id= "fileForm" enctype="multipart/form-data">
     <div class="box__input">
-      <div><i class='far fa-folder-open' style='font-size: 4em; color: #1ba8ff; margin-bottom: 8%'></i></div>
+      <div class='icon_upload'><i class='far fa-folder-open' style='font-size: 4em; color: #1ba8ff; margin-bottom: 8%'></i></div>
       <input class="box__file" type="file" name="file" id="file" data-multiple-caption="{count} files selected" multiple />
       <label for="file" id='fileLabel'><strong>Choose a file</strong><span class="box__dragndrop"> or drag it here</span>.</label>
       <div><button class="box__button" type="submit">Upload selected files</button></div>
@@ -102,13 +102,12 @@
                 contentType: false,
                 processData: false,
                 complete: function() {
-                    $form.removeClass('is-uploading');
+                   //do this
                 },
-                success: function(data) {
-                    $form.addClass(data.success == true ? 'is-success' : 'is-error');
-                    if(!data.success){
-                        $errorMsg.text(data.error);
-                    }
+                success: function() {
+                    $('.box__button').remove();
+                    $('.icon_upload').html('<i class="fas fa-check" style=\'font-size: 4em; color: #1ba8ff; margin-bottom: 8%\'></i>');
+                    $label.text('Success!');
                 },
                 error: function() {
                     //TODO-------------------------------------------------------
