@@ -9,15 +9,13 @@ from NLPWebPortal.neuralNetwork import LanguageModel
 import json
 import pickle
 
-
-
 ##Loads the files for the user based on whether or not they wish to user their private database
 ##Will return an array of words or characters
 ##def open_files(userID, private_check):
 
 
 def clean_file(text):
-        """Performs preprocessing on text so that it can be more readily used for Natural Language Processing Tasks
+  """Performs preprocessing on text so that it can be more readily used for Natural Language Processing Tasks
         
         Args:
                 text (String): String of words
@@ -26,67 +24,70 @@ def clean_file(text):
                 [String]: List of cleaned words ready for NLP use
         """
 
-        text = text.lower()
+  text = text.lower()
 
-        tokens = word_tokenize(text)
-        
-        # Stemming
-        ps = PorterStemmer()
-        stem_words = []
-        for word in tokens:                 
-                if(word.isalpha()): #Remove punctuation
-                        stem_words.append(ps.stem(word))
+  tokens = word_tokenize(text)
 
-        # Build a dictionary 
-        # TODO: Eval if should be before stemming
-        for word in stem_words:
-                wordDB = False
-                wordDB = db.session.query(Dictionary).filter(Dictionary.word == word).first()
-                if(wordDB):
-                        wordDB.increment()
-                else:
-                        wordDB = Dictionary(word)
-                        db.session.add(wordDB)
-        
-        # Commit changes
-        db.session.commit()
-        return stem_words
+  # Stemming
+  ps = PorterStemmer()
+  stem_words = []
+  for word in tokens:
+    if (word.isalpha()):  #Remove punctuation
+      stem_words.append(ps.stem(word))
+
+  # Build a dictionary
+  # TODO: Eval if should be before stemming
+  for word in stem_words:
+    wordDB = False
+    wordDB = db.session.query(Dictionary).filter(
+        Dictionary.word == word).first()
+    if (wordDB):
+      wordDB.increment()
+    else:
+      wordDB = Dictionary(word)
+      db.session.add(wordDB)
+
+  # Commit changes
+  db.session.commit()
+  return stem_words
+
 
 ##Scans the database for any files that haven't been processed and generates weights for them
 ##Should run periodically, save the best weight file with the same name as the text file it came from
 def generate_weights():
-        
-        # Check new
-        training_files = db.session.query(TrainingFile).\
-                filter(TrainingFile.processed == False).all()
 
-        # Iterate through the unprocessed files
-        for i in training_files:
-                file_name = i.name()
+  # Check new
+  training_files = db.session.query(TrainingFile).\
+          filter(TrainingFile.processed == False).all()
 
-                # TODO: Fix encoding issues using openFile method
-                try:
-                        file_contents = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt', encoding='utf-8') 
-                except:
-                        file_contents = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt')
-                
-                file_text = file_contents.read() #contents in memory
-                file_contents.close()
- 
-                stemmed = clean_file(file_text)
-                outName = '/fileServer/TrainingFiles/clean-' + str(i.get_id()) + '.data'
+  # Iterate through the unprocessed files
+  for i in training_files:
+    file_name = i.name()
 
-                # * Save to disk so don't have to keep cleaning
-                with open(outName, 'wb') as fileOut:
-                        pickle.dump(stemmed, fileOut)
-                
-                language_model = LanguageModel(outName)
-                language_model.train_model()
+    # TODO: Fix encoding issues using openFile method
+    try:
+      file_contents = open(
+          os.path.join(app.config['UPLOAD_DIR'], file_name),
+          'rt',
+          encoding='utf-8')
+    except:
+      file_contents = open(
+          os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt')
 
-                # * Update DB
-                i.processed = True
+    file_text = file_contents.read()  #contents in memory
+    file_contents.close()
 
-        
-        db.session.commit()
-                
+    stemmed = clean_file(file_text)
+    outName = '/fileServer/TrainingFiles/clean-' + str(i.get_id()) + '.data'
 
+    # * Save to disk so don't have to keep cleaning
+    with open(outName, 'wb') as fileOut:
+      pickle.dump(stemmed, fileOut)
+
+    language_model = LanguageModel(outName)
+    language_model.train_model()
+
+    # * Update DB
+    i.processed = True
+
+  db.session.commit()
