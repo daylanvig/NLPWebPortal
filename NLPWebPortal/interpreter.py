@@ -1,83 +1,92 @@
-import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, LSTM
-from keras.utils import np_utils
-from keras.callbacks import ModelCheckpoint
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 import sys
-
-file_name = r'C:\ResearchProject\Flask\NLPWebPortal\NLPWebPortal\29763.txt'
-file_selected = open(file_name)
-text = file_selected.read()
-text = text.lower()
-file_selected.close()
-tokens = word_tokenize(text)
-alphanumeric = [word for word in tokens if word.isalpha()]
-stop_words = set(stopwords.words('english'))
-words = [w for w in alphanumeric if not w in stop_words]
-
-#mapping, word level
-word_map = sorted(list(set(words)))
-word_to_n = dict((word, n) for n, word in enumerate(word_map))
-n_to_word = dict((n, word) for n, word in enumerate(word_map))
+import os
+from NLPWebPortal import app
+from NLPWebPortal.model import db, User, TrainingFile, Dictionary
+from NLPWebPortal.neuralNetwork import LanguageModel
+import json
+import pickle
 
 
-train_array = []
-target_array = []
-length = len(words)
 
-SEQUENCE_LENGTH = 5 #How long before predicting
-
-for i in range(0, length-SEQUENCE_LENGTH, 1):
-    sequence = words[i : i + SEQUENCE_LENGTH]
-    label = words[i + SEQUENCE_LENGTH]
-    train_array.append([word_to_n[word] for word in sequence])
-    target_array.append(word_to_n[label])
+##Loads the files for the user based on whether or not they wish to user their private database
+##Will return an array of words or characters
+##def open_files(userID, private_check):
 
 
-train = np.reshape(train_array, (len(train_array), SEQUENCE_LENGTH, 1))
-train = train/float(len(word_map))
-target = np_utils.to_categorical(target_array)
+def clean_file(text):
+        """Performs preprocessing on text so that it can be more readily used for Natural Language Processing Tasks
+        
+        Args:
+                text (String): String of words
+        
+        Returns:
+                [String]: List of cleaned words ready for NLP use
+        """
 
-model = Sequential()
-model.add(LSTM(256, input_shape=(train.shape[1], train.shape[2])))
-model.add(Dropout(0.2))
-model.add(Dense(target.shape[1], activation='softmax'))
+        text = text.lower()
 
+        tokens = word_tokenize(text)
+        
+        # Stemming
+        ps = PorterStemmer()
+        stem_words = []
+        for word in tokens:                 
+                if(word.isalpha()): #Remove punctuation
+                        stem_words.append(ps.stem(word))
 
-#if predicting input here
+        # Build a dictionary 
+        # TODO: Eval if should be before stemming
+        for word in stem_words:
+                wordDB = False
+                wordDB = db.session.query(Dictionary).filter(Dictionary.word == word).first()
+                if(wordDB):
+                        wordDB.increment()
+                else:
+                        wordDB = Dictionary(word)
+                        db.session.add(wordDB)
+        
+        # Commit changes
+        db.session.commit()
+        return stem_words
 
+##Scans the database for any files that haven't been processed and generates weights for them
+##Should run periodically, save the best weight file with the same name as the text file it came from
+def generate_weights():
+        
+        # Check new
+        training_files = db.session.query(TrainingFile).\
+                filter(TrainingFile.processed == False).all()
 
-def predict():
-    weight_file = "weights-improvement-20-7.0875.hdf5"
-    model.load_weights(weight_file)
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
+        # Iterate through the unprocessed files
+        for i in training_files:
+                file_name = i.name()
 
-    start = np.random.randint(0, len(train_array)-1)
-    pattern = train_array[start]
-    print ([n_to_word[value] for value in pattern])
+                # TODO: Fix encoding issues using openFile method
+                try:
+                        file_contents = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt', encoding='utf-8') 
+                except:
+                        file_contents = open(os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt')
+                
+                file_text = file_contents.read() #contents in memory
+                file_contents.close()
+ 
+                stemmed = clean_file(file_text)
+                outName = '/fileServer/TrainingFiles/clean-' + str(i.get_id()) + '.data'
 
-    for i in range(10):
-        x = np.reshape(pattern, (1, len(pattern), 1))
-        x = x/float(len(word_map))
-        prediction = model.predict(x, verbose=0)
-        index = np.argmax(prediction)
-        result = n_to_word[index]
-        seq_in = [n_to_word[value] for value in pattern]
-        print(result)
-        pattern.append(index)
-        pattern = pattern[1:len(pattern)]
+                # * Save to disk so don't have to keep cleaning
+                with open(outName, 'wb') as fileOut:
+                        pickle.dump(stemmed, fileOut)
+                
+                language_model = LanguageModel(outName)
+                language_model.train_model()
 
+                # * Update DB
+                i.processed = True
 
-#Checkpoints
-def modelMake():
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
-    filepath="weights-improvement-{epoch:02d}-{loss:.4f}.hdf5"
-    checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
-    callback_list = [checkpoint]
+        
+        db.session.commit()
+                
 
-    model.fit(train, target, epochs=20, batch_size=128, callbacks=callback_list)
-
-#modelMake()
-predict()

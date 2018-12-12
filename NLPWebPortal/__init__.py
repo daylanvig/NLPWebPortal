@@ -18,6 +18,8 @@ login_manager.login_view = 'login'
 #Imports
 import NLPWebPortal.model
 import NLPWebPortal.routes
+import NLPWebPortal.interpreter
+import NLPWebPortal.neuralNetwork
 
 #initialize database
 db.create_all()

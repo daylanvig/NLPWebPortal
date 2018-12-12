@@ -4,6 +4,7 @@ from NLPWebPortal import app, db, login_manager, \
     login_user, logout_user, current_user, login_required, LoginManager,\
     SQLAlchemy, os
 from NLPWebPortal.model import User, TrainingFile
+from NLPWebPortal.interpreter import generate_weights
 from datetime import datetime
 from flask import jsonify
 from werkzeug.utils import secure_filename
@@ -12,13 +13,16 @@ from werkzeug.utils import secure_filename
 @app.route('/')
 @app.route('/index')
 def index():
+    generate_weights()
     return render_template('index.html')
 
 @app.route('/query', methods=['POST'])
 def query():
     data = request.json
-    print(data['query_text'])
-    return jsonify(success=True)
+    query_text = data['query_text']
+    private_check = data['private_check']
+    
+    return jsonify("HelloWorld") ##TODO return the response
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():

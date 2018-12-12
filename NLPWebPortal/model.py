@@ -50,7 +50,7 @@ class TrainingFile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     file_name = db.Column(db.String(50), nullable=False)
     extension = db.Column(db.String(5), nullable=False)
-    cleaned = db.Column(db.Boolean, default=False)
+    processed = db.Column(db.Boolean, default=False)
     upload_date = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, user_id, upload_name, extension):
@@ -65,4 +65,21 @@ class TrainingFile(db.Model):
     #for easy representation in processor
     def name(self):
         return (str(self.file_id) + '.' + self.extension)
+
+        
+
+class Dictionary(db.Model):
+
+    word = db.Column(db.String, primary_key=True)
+    count = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, word):
+        self.word = word
+        self.count = 1
+    
+    def increment(self):
+        self.count = self.count + 1
+
+    def __repr__(self):
+        return "(%s, %d)" % (self.word, self.count)
 

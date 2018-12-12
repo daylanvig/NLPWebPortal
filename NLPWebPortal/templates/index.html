@@ -101,8 +101,7 @@
             e.preventDefault();
 
             var query_text = {
-                'test' : 'test1',
-                'query_text' : editor.getText(),
+                'query_text' : $('.ql-editor').html(),
                 'private_check' : $('#private_check').is(':checked')
             }
 
@@ -110,7 +109,10 @@
                 url: $('#text_editor').attr('action'),
                 type: 'post',
                 data: JSON.stringify(query_text),
-                contentType: 'application/json'
+                contentType: 'application/json',
+                success: function(response) {
+                    $('.ql-editor').html(response);
+                }
             });
         });
 
