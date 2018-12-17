@@ -19,3 +19,16 @@ h3 {
     background-color: #1ba8ff;
     color: white;
 }
+
+.account_changeable {
+  
+}
+
+.account_changeable:hover {
+  color: green;
+}
+
+.title {
+  float: left;
+  width: 100px;
+}

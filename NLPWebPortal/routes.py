@@ -4,16 +4,16 @@ from NLPWebPortal import app, db, login_manager, \
     login_user, logout_user, current_user, login_required, LoginManager,\
     SQLAlchemy, os
 from NLPWebPortal.model import User, TrainingFile
-from NLPWebPortal.interpreter import generate_weights
+from NLPWebPortal.interpreter import interpret_query
 from datetime import datetime
 from flask import jsonify
 from werkzeug.utils import secure_filename
+from bs4 import BeautifulSoup
 
 
 @app.route('/')
 @app.route('/index')
 def index():
-  generate_weights()
   return render_template('index.html')
 
 
@@ -22,8 +22,15 @@ def query():
   data = request.json
   query_text = data['query_text']
   private_check = data['private_check']
+  curr_user = current_user.get_id()
 
-  return jsonify("HelloWorld")  ##TODO return the response
+  if (private_check and
+      not curr_user):  # * Can't request private without being logged in
+    print('priv no auth')
+    return jsonify('Err not log'
+                  )  # ! This needs to be changed to prompt for a log in screen
+  else:
+    return jsonify(interpret_query(curr_user, query_text, private_check))
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -80,9 +87,10 @@ def logOut():
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
 def account():
-  if request.method == 'GET':
-    return render_template('account.html')
 
+  files = TrainingFile.query.filter_by(user_id=current_user.get_id()).all()
+  if request.method == 'GET':
+    return render_template('account.html', user=current_user, files=files)
   user = User.query.get(current_user.get_id())
   password = request.form['password']
 
@@ -126,4 +134,4 @@ def load_user(user_id):
 
 
 if __name__ == '__main__':
-  app.run()
+  app.run(host='0.0.0.0')

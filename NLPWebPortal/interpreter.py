@@ -1,93 +1,145 @@
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer
-import sys
 import os
+import sys
 from NLPWebPortal import app
-from NLPWebPortal.model import db, User, TrainingFile, Dictionary
 from NLPWebPortal.neuralNetwork import LanguageModel
-import json
+from bs4 import BeautifulSoup
 import pickle
-
-##Loads the files for the user based on whether or not they wish to user their private database
-##Will return an array of words or characters
-##def open_files(userID, private_check):
+import random
 
 
-def clean_file(text):
-  """Performs preprocessing on text so that it can be more readily used for Natural Language Processing Tasks
-        
-        Args:
-                text (String): String of words
-        
-        Returns:
-                [String]: List of cleaned words ready for NLP use
-        """
-
-  text = text.lower()
-
-  tokens = word_tokenize(text)
-
-  # Stemming
-  ps = PorterStemmer()
-  stem_words = []
-  for word in tokens:
-    if (word.isalpha()):  #Remove punctuation
-      stem_words.append(ps.stem(word))
-
-  # Build a dictionary
-  # TODO: Eval if should be before stemming
-  for word in stem_words:
-    wordDB = False
-    wordDB = db.session.query(Dictionary).filter(
-        Dictionary.word == word).first()
-    if (wordDB):
-      wordDB.increment()
-    else:
-      wordDB = Dictionary(word)
-      db.session.add(wordDB)
-
-  # Commit changes
-  db.session.commit()
-  return stem_words
+def interpret_query_load(user_id, private_db, char=""):
+  """
+  Loader method to configure query settings, called by the word, char, and sentence specific functions
 
 
-##Scans the database for any files that haven't been processed and generates weights for them
-##Should run periodically, save the best weight file with the same name as the text file it came from
-def generate_weights():
+  Args:
+  user_id (int/String): Identification number associated with the user's account. Will be an int if the user is logged in
+    or otherwise will be None
+  private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
+  char (str, optional): Defaults to "". Will be 'char' if interpreting a character value to load different weights (character model specific)
 
-  # Check new
-  training_files = db.session.query(TrainingFile).\
-          filter(TrainingFile.processed == False).all()
+  Returns:
+  [String], String: A list of words used in the model, the path to the weights
+  """
 
-  # Iterate through the unprocessed files
-  for i in training_files:
-    file_name = i.name()
+  if (private_db == False):
+    file_name = 'shared'
+  else:
+    file_name = str(user_id)
 
-    # TODO: Fix encoding issues using openFile method
-    try:
-      file_contents = open(
-          os.path.join(app.config['UPLOAD_DIR'], file_name),
-          'rt',
-          encoding='utf-8')
-    except:
-      file_contents = open(
-          os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt')
+  words_file_path = os.path.join(app.config['MODEL_DIR'],
+                                 'user-' + char + file_name + '.data')
+  weight_file_path = os.path.join(app.config['MODEL_DIR'],
+                                  'weights.' + char + file_name + '.hdf5')
 
-    file_text = file_contents.read()  #contents in memory
-    file_contents.close()
+  with open(words_file_path, 'rb') as fh:
+    dumped_words = pickle.load(fh)
 
-    stemmed = clean_file(file_text)
-    outName = '/fileServer/TrainingFiles/clean-' + str(i.get_id()) + '.data'
+  return dumped_words, weight_file_path
 
-    # * Save to disk so don't have to keep cleaning
-    with open(outName, 'wb') as fileOut:
-      pickle.dump(stemmed, fileOut)
 
-    language_model = LanguageModel(outName)
-    language_model.train_model()
+def interpret_query_word(user_id, private_db, query_text):
+  """
+  Configures and calls the language model to predict a word. Called by interpret_query(...).
 
-    # * Update DB
-    i.processed = True
 
-  db.session.commit()
+  Args:
+    user_id (int/String): Identification number associated with the user's account. Will be an int if the user is logged in
+      or otherwise will be None
+    private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
+    query_text (String): String of text that comes before the missing word
+
+  Returns:
+    String: The missing word as predicted by the model 
+  """
+
+  dumped_words, weights = interpret_query_load(user_id, private_db)
+
+  lm = LanguageModel(dumped_words)
+  return (lm.predict_word(weights, query_text))
+
+
+def interpret_query_sentence(user_id, private_db, query_text):
+  """
+  Configures and calls the language model to predict a sentence. Called by interpret_query(...).
+
+  Creates a sentence based on a random number of words (5-20)
+
+  Args:
+    user_id (int/String): Identification number associated with the user's account. Will be an int if the user is logged in
+      or otherwise will be None
+    private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
+    query_text (String): String of text that comes before the missing sentence
+
+  Returns:
+    String: The missing sentence as predicted by the model 
+
+  """
+  dumped_words, weights = interpret_query_load(user_id, private_db)
+  words_wanted = random.randint(5, 20)
+
+  lm = LanguageModel(dumped_words)
+  sentence = lm.predict_word(weights, query_text, words_wanted).capitalize()
+  return sentence
+
+
+def interpret_query_character(user_id, private_db, query_text):
+  """
+  Configures and calls the language model to predict a character. Called by interpret_query(...).
+
+
+  Args:
+    user_id (int/String): Identification number associated with the user's account. Will be an int if the user is logged in
+      or otherwise will be None
+    private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
+    query_text (String): String of text that comes before the missing word
+
+  Returns:
+    String: The missing word as predicted by the model 
+  """
+  dumped_words, weights = interpret_query_load(user_id, private_db, 'char')
+
+  lm = LanguageModel(dumped_words)
+  return (lm.predict_word(weights, query_text, 1, True)[0])
+
+
+def interpret_query(curr_user, query_text, private_check):
+  """
+  Interprets a fragmented text query to attempt to determine the correct values for missing words, sentences, or characters.
+
+  This function acts as the interface to direct to type specific functions
+  
+  Args:
+    curr_user (int): The ID of the currently logged in user. If no user is logged in, will be 'None'
+    query_text (String): A string of text submitted by a user, containing html tags
+    private_check (Boolean): Will be True if the user requested to use their private database, otherwise will False.
+      Must be 'False' if curr_user is 'None'
+  
+  Returns:
+    String: The text with fragments removed / replaced with valid details.
+  """
+
+  soup = BeautifulSoup(query_text, features='html.parser')
+  html_contents = soup.p
+
+  query_list = ""
+
+  # * Iterate through query contents to id missing values
+  for child in html_contents.children:
+
+    if (str(child).startswith(  #predict character
+        '<strong style="background-color: rgb(255, 221, 27);">')):
+      query_list += interpret_query_character(curr_user, private_check,
+                                              query_list)
+    elif (str(child).startswith(  #predict word
+        "<strong style=\"background-color: rgb(255, 232, 26);\">")):
+      query_list += interpret_query_word(curr_user, private_check,
+                                         query_list) + " "
+    elif (str(child).startswith(  #predict sentence
+        "<strong style=\"background-color: rgb(255, 231, 25);\">")):
+      query_list += interpret_query_sentence(curr_user, private_check,
+                                             query_list) + ". "
+    elif (not str(child).startswith('<')):  #append to sentence any raw text
+      query_list += str(child)
+
+  return query_list

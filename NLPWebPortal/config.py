@@ -4,9 +4,9 @@ SECRET_KEY = os.urandom(24) or 'BSAr3cVyZ4sarkAX'  #Env or random pass
 
 #Directories--
 BASE = os.path.abspath(os.path.dirname(__file__))
-BASE_DIR = os.path.join(BASE, 'fileServer')
-UPLOAD_DIR = os.path.join(BASE_DIR, "TrainingFiles/")
-MODEL_DIR = os.path.join(BASE_DIR, "LanguageModels/")
+BASE_DIR = os.path.join(BASE, 'FileServer')
+UPLOAD_DIR = os.path.join(BASE_DIR, "TrainingFiles")
+MODEL_DIR = os.path.join(BASE_DIR, "LanguageModels")
 #--------------
 
 SQLALCHEMY_DATABASE_URI = ('sqlite:///' + os.path.join(BASE_DIR, 'database.db'))

@@ -82,3 +82,46 @@ class Dictionary(db.Model):
 
   def __repr__(self):
     return "(%s, %d)" % (self.word, self.count)
+
+
+class Query(db.Model):
+
+  __tablename__ = 'query'
+
+  query_id = db.Column(db.Integer, primary_key=True)
+  query = db.Column(db.Text, nullable=False)
+  result = db.Column(db.Text)
+  type = db.Column(db.String(50))
+
+  __mapper_args__ = {'polymorphic_identity': 'query', 'polymorphic_on': 'type'}
+
+  def __init__(self, query):
+    self.query = query
+
+
+class UserQuery(Query):
+
+  query_id = db.Column(
+      db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
+  use_private = (db.Boolean)
+  request_date = db.Column(db.DateTime, nullable=False)
+
+  __mapper_args__ = {'polymorphic_identity': 'userquery'}
+
+  def __init__(self, query, user_id, use_private):
+    Query.__init__(self, query)
+    self.user_id = user_id
+    self.use_private = use_private
+    self.request_date = datetime.utcnow()
+
+
+class TestQuery(Query):
+
+  query_id = db.Column(
+      db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
+
+  __mapper_args__ = {'polymorphic_identity': 'testquery'}
+
+  def __init__(self, query, results_expected):
+    Query.__init__(self, query)

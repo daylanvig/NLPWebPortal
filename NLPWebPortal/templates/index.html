@@ -2,120 +2,124 @@
 <html lang="en">
 
 <head>
-<link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/querypage.css') }}">
-<script src="{{ url_for('static', filename='jquery.js') }}"></script>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/querypage.css') }}">
+  <script src="{{ url_for('static', filename='jquery.js') }}"></script>
 </head>
 
 {% extends "base.html" %}
 {% block content %}
- {{ super() }} <!-- Navigation bar -->
+{{ super() }}
+<!-- Navigation bar -->
 
- <div id="main_wrap">
-        <form class='text_editor' id='text_editor' method='post' action="{{ url_for('query') }}">
-            <h2>Submit Query</h2>
-            <div id='box'>
-                <div id='toolbar'>
-                    <button class='format_btn' id='missing_character'>Character</button>
-                    <button class='format_btn' id='missing_word'>Word</button>
-                    <button class='format_btn' id='missing_sentence'>Sentence</button>
-                </div>
-                <div id='query_entry' name='query_entry'></div>
-                <div style='text-align: right'>
-                    <input type='text' id='text_value' name='text_value' style='display: none'>
-                    <input type='checkbox' name='private_check' value='1' id='private_check'> 
-                    <span id='privateFlag' style='margin-right: 10px'>Use Private Database</span>
-                    <button id='submit'>Submit Query</button>
-                </div>
-            </div>
-        </form>
+<div id="main_wrap">
+  <form class='text_editor' id='text_editor' method='post' action="{{ url_for('query') }}">
+    <h2>Submit Query</h2>
+    <div id='box'>
+      <div id='toolbar'>
+        <button class='format_btn' id='missing_character'>Character</button>
+        <button class='format_btn' id='missing_word'>Word</button>
+        <button class='format_btn' id='missing_sentence'>Sentence</button>
+      </div>
+      <div id='query_entry' name='query_entry'></div>
+      <div style='text-align: right'>
+        <input type='text' id='text_value' name='text_value' style='display: none'>
+        <input type='checkbox' name='private_check' value='1' id='private_check'>
+        <span id='privateFlag' style='margin-right: 10px'>Use Private Database</span>
+        <button id='submit'>Submit Query</button>
+      </div>
+    </div>
+  </form>
 </div>
 <script>
 
-        /* Initialize editor */
-        var container = document.getElementById('query_entry');
-        var editor = new Quill(container, {
-            modules: {
-                toolbar: '#toolbar'
-            }
-        });
+  /* Initialize editor */
+  var container = document.getElementById('query_entry');
+  var editor = new Quill(container, {
+    modules: {
+      toolbar: '#toolbar'
+    }
+  });
 
-        /* Add buttons for functionality */
-        var missingCharBtn = document.querySelector('#missing_character');
-        missingCharBtn.addEventListener('click', function(e){
-            e.preventDefault();
-            var index = editor.getSelection();
-            if(index == null){
-                index = editor.getLength();
-                if(index == 1){
-                    index = 0;
-                }
-            }
+  /* Add buttons for functionality */
+  var missingCharBtn = document.querySelector('#missing_character');
+  missingCharBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    var index = editor.getSelection();
+    if (index == null) {
+      index = editor.getLength();
+      if (index == 1) {
+        index = 0;
+      }
+    }
 
-            editor.insertText(index, '<C>', {
-                'background-color' : '#ffdd1b',
-                'bold' : true
-            })
-            editor.format('background-color', 'white');
-            editor.format('bold', false);
-        });
+    editor.insertText(index, '<C>', {
+      'background-color': '#ffdd1b',
+      'bold': true,
+    })
+    editor.format('background-color', 'white');
+    editor.format('bold', false);
+  });
 
-        var missingWordBtn = document.querySelector('#missing_word');
-        missingWordBtn.addEventListener('click', function(e){
-            e.preventDefault();
-            var index = editor.getSelection();
-            if(index == null){
-                index = editor.getLength();
-                if(index == 1){
-                    index = 0;
-                }
-            }
-            editor.insertText(index, '<W>', {
-                'background-color' : '#ffdd1b',
-                'bold' : true
-            })
-            editor.format('background-color', 'white');
-            editor.format('bold', false);
-        });
+  var missingWordBtn = document.querySelector('#missing_word');
+  missingWordBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    var index = editor.getSelection();
+    if (index == null) {
+      index = editor.getLength();
+      if (index == 1) {
+        index = 0;
+      }
+    }
+    editor.insertText(index, '<W>', {
+      'background-color': '#ffe81a',
+      'bold': true
+    })
+    editor.format('background-color', 'white');
+    editor.format('bold', false);
+    editor.insertText(' ');
+  });
 
-        var missingSentBtn = document.querySelector('#missing_sentence');
-        missingSentBtn.addEventListener('click', function(e){
-            e.preventDefault();
-            var index = editor.getSelection();
-            if(index == null){
-                index = editor.getLength();
-                if(index == 1){
-                    index = 0;
-                }
-            }
-            
-            editor.insertText(index, '<S>', {
-                'background-color' : '#ffdd1b',
-                'bold' : true
-            })
-            editor.format('background-color', 'white');
-            editor.format('bold', false);
-        });
+  var missingSentBtn = document.querySelector('#missing_sentence');
+  missingSentBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    var index = editor.getSelection();
+    if (index == null) {
+      index = editor.getLength();
+      if (index == 1) {
+        index = 0;
+      }
+    }
+
+    editor.insertText(index, '<S>', {
+      'background-color': '#ffe719',
+      'bold': true
+    })
+    editor.format('background-color', 'white');
+    editor.format('bold', false);
+    editor.insertText(' ');
+  });
 
 
-        $('#submit').click(function(e) {
-            e.preventDefault();
+  $('#submit').click(function (e) {
+    e.preventDefault();
 
-            var query_text = {
-                'query_text' : $('.ql-editor').html(),
-                'private_check' : $('#private_check').is(':checked')
-            }
+    var query_text = {
+      'query_text': $('.ql-editor').html(),
+      'private_check': $('#private_check').is(':checked')
+    }
 
-            $.ajax({
-                url: $('#text_editor').attr('action'),
-                type: 'post',
-                data: JSON.stringify(query_text),
-                contentType: 'application/json',
-                success: function(response) {
-                    $('.ql-editor').html(response);
-                }
-            });
-        });
+    $.ajax({
+      url: $('#text_editor').attr('action'),
+      type: 'post',
+      data: JSON.stringify(query_text),
+      contentType: 'application/json',
+      success: function (response) {
+        $('.ql-editor').html(response);
+      }
+    });
+  });
 
 </script>
 {% endblock %}
+
 </html>
