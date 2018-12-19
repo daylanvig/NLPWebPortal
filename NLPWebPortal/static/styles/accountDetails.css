@@ -1,34 +1,111 @@
-
-h1, h2 {
-    color: #1785c9;
+* {
+  box-sizing: border-box;
 }
 
-h3 {
-
+h1,
+h2 {
+  color: #1785c9;
 }
-.form-popup {
-    display: none;
-    position: fixed;
-    bottom: 50vh;
-    right: 50vh;
-    border: 3px solid #f1f1f1;
-    border-radius: 25px;
-    z-index: 9;
-    text-align: center;
-    padding: 40px;
-    background-color: #1ba8ff;
-    color: white;
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: left;
+}
+
+th {
+  background-color: #1785c9;
+  color: white;
 }
 
 .account_changeable {
-  
+  color: white;
+  text-decoration: underline;
 }
 
 .account_changeable:hover {
-  color: green;
+  color: #ff6b1b;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+i.fas {
+  color: #ff6b1b;
+  text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+}
+
+h3.warn {
+  color: red;
+  text-shadow: 1px 0 0 #fff, -1px 0 0 #fff, 0 1px 0 #fff, 0 -1px 0 #fff, 1px 1px #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff;
+}
+
+.confirm_btn {
+  margin-top: 10px;
+  padding-top: 1vh;
+  padding-bottom: 1vh;
+  background-color: #ff6b1b;
+  color: white;
+}
+
+.emailForm {
+  text-align: left;
+  margin: 0px;
+  padding: 0px;
+  width: 100%;
+}
+
+.form_field {
+  margin: 10px 10px 10px 0px;
+  width: 100%;
 }
 
 .title {
   float: left;
-  width: 100px;
+  width: 120px;
+  color: white;
+}
+
+.form-popup {
+  display: none;
+  position: fixed;
+  bottom: 50vh;
+  right: 50vh;
+  border: 3px solid #f1f1f1;
+  border-radius: 25px;
+  z-index: 9;
+  text-align: center;
+  padding: 40px;
+  background-color: #1ba8ff;
+  color: white;
+}
+
+.history {
+  border-collapse: collapse;
+  border: 1px solid #1785c9;
+  width: 100%;
+}
+
+.hist_row:nth-child(even) {
+  background-color: #1ba8ff;
+  color: white;
+}
+
+.hist_row:hover {
+  background-color: #ff6b1b;
+  color: white;
+}
+
+.right {
+  float: right;
+  width: 100%;
+  text-align: right;
+}
+
+#profile_info {
+  padding-top: 10px;
+  background-color: #1ba8ff;
 }

@@ -1,6 +1,7 @@
 import os
 import sys
 from NLPWebPortal import app
+from NLPWebPortal.model import db, UserQuery
 from NLPWebPortal.neuralNetwork import LanguageModel
 from bs4 import BeautifulSoup
 import pickle
@@ -123,23 +124,36 @@ def interpret_query(curr_user, query_text, private_check):
   html_contents = soup.p
 
   query_list = ""
+  raw_text = ""
+  result_list = []
 
   # * Iterate through query contents to id missing values
   for child in html_contents.children:
 
     if (str(child).startswith(  #predict character
         '<strong style="background-color: rgb(255, 221, 27);">')):
-      query_list += interpret_query_character(curr_user, private_check,
-                                              query_list)
+      result = interpret_query_character(curr_user, private_check, query_list)
+      query_list += result
+      raw_text += '<C>'
+      result_list.append(result)
     elif (str(child).startswith(  #predict word
         "<strong style=\"background-color: rgb(255, 232, 26);\">")):
-      query_list += interpret_query_word(curr_user, private_check,
-                                         query_list) + " "
+      result = interpret_query_word(curr_user, private_check, query_list)
+      raw_text += '<W>'
+      query_list += result + " "
+      result_list.append(result)
     elif (str(child).startswith(  #predict sentence
         "<strong style=\"background-color: rgb(255, 231, 25);\">")):
-      query_list += interpret_query_sentence(curr_user, private_check,
-                                             query_list) + ". "
+      result = interpret_query_sentence(curr_user, private_check, query_list)
+      raw_text += '<S>. '
+      query_list += result + ". "
+      result_list.append(result)
     elif (not str(child).startswith('<')):  #append to sentence any raw text
       query_list += str(child)
+      raw_text += str(child)
 
+  if (curr_user):
+    result_list = ', '.join(result_list)
+    db.session.add(UserQuery(raw_text, curr_user, private_check, result_list))
+    db.session.commit()
   return query_list

@@ -80,7 +80,7 @@ class LanguageModel():
     self.model.fit(
         self.train,
         self.target,
-        epochs=3,
+        epochs=1,
         batch_size=64,
         callbacks=callback_list)
 

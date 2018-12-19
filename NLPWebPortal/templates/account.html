@@ -12,47 +12,181 @@
 <div>
   <h1>Account Summary</h1>
   <h2>User Profile</h2>
-  <p>
-    <div class='title'>Email:</div>
-    <div class='account_changeable' onclick="openDeleteForm()">{{ user.email }}</div>
-  </p>
-  <p>
-    <div class='title'>Password: </div>
-    <div class='account_changeable' onclick="openDeleteForm()"> ****** </div>
-  </p>
+  <div id='profile_info'>
+    <table>
+      <tr>
+        <td class='title'>Email</td>
+        <td class='account_changeable' id='user_email' onclick='openEmailForm()'>{{user.email}}</td>
 
-  <!-- Delete Account confirmation -->
-  <div class='form-popup' id='confirmForm'>
-    <form action="" method=post class='confirmForm'>
-      <h3 style="text-decoration: underline">Warning: This action is irreversible.</h3>
-      <h3>Confirm password to delete your account.</h3>
-      <input type="password" placeholder="Enter password" name="password" id="password" required>
-      <div></div>
-      <button name="deletebtn" type="submit" class="btn" style='margin-top: 30px'>Confirm Delete</button>
-      <button class='btn' onclick="closeDeleteForm()">Cancel</button>
-    </form>
+      </tr>
+      <tr>
+        <td class='title'>Password</td>
+        <td class='account_changeable' onclick="openPasswordForm()">********</td>
+      </tr>
+    </table>
+
+    <!-- Delete Account confirmation -->
+    <div class='form-popup' id='confirmForm'>
+      <form id='deleteForm' action='' method='post' class='confirmForm'>
+        <div class='right'><i class="fas fa-times right" onclick='closeDeleteForm()'></i></div>
+        <h3 class='warn'>Warning: This action is irreversible.</h3>
+        <h3>Confirm password to delete your account.</h3>
+        <input type="password" placeholder="Enter password" name="password" id="password" required>
+        <div></div>
+        <button type="submit" class="btn confirm_btn" style='margin-top: 30px' name='passwordbtn'>
+          Confirm Delete
+        </button>
+      </form>
+    </div>
+
+    <div class='form-popup' id='emailForm'>
+      <div class='right'><i class="fas fa-times right" onclick='closeEmailForm()'></i></div>
+      <form action='#' class='subForm' id=email_form>
+        <h3>Update Email</h3>
+        <input class='form_field' type='email' placeholder="New email" name='email' id='email' required>
+        <input class='form_field' type="password" placeholder="Verify password" name="password" id="epassword" required>
+        <div></div>
+        <div class='right'><button type='submit' class='btn confirm_btn' style='margin-top: 30px' name='emailbtn' id='emailbtn'>Confirm</button></div>
+      </form>
+    </div>
+
+    <div class='form-popup' id='passwordForm'>
+      <div class='right'><i class="fas fa-times right" onclick='closePasswordForm()'></i></div>
+      <form action='#' class='subForm' id=password_form>
+        <h3>Update Email</h3>
+        <input class='form_field' type='password' placeholder="Current Password" id='current_password' required>
+        <input class='form_field' type='password' placeholder="New Password" id='new_password' required>
+        <input class='form_field' type="password" placeholder="Confirm New Password" id="confirm_password" required>
+        <div></div>
+        <div class='right'><button type='submit' class='btn confirm_btn' style='margin-top: 30px' name='emailbtn' id='emailbtn'>Confirm</button></div>
+      </form>
+    </div>
+    <button class='btn confirm_btn' onclick="openDeleteForm()">Delete Account</button>
+
   </div>
-  <button class='btn' onclick="openDeleteForm()">Delete Account</button>
-
-
+  <div style='overflow-x:auto;'></div>
   <h2>Files Uploaded</h2> <!-- Make me into a popup link/click to expand -->
 
   <!-- Only display if user has uploaded files -->
   {% if files|length > 0 %}
-  {% for f in files %}
-  <p>
-    {{ f.file_name }}
-  </p>
-  {% endfor %}
-
+  <table class='history'>
+    <tr class='header'>
+      <th>File Name</th>
+      <th>Upload Date</th>
+      <th>Status</th>
+    </tr>
+    {% for f in files %}
+    <tr class='hist_row'>
+      <td>{{ f.file_name }}</td>
+      <td>{{ (f.upload_date|string)[:10] }}</td>
+      {% if f.processed == True %}
+      <td>Processed</td>
+      {% else %}
+      <td>Pending</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
   <!-- No files uploaded -->
   {% else %}
   <div> You have not uploaded any files. Click <a href='/fileUpload'>here</a> to upload now. </div>
   {% endif %}
-  <h2>Queries Submitted</h2> <!-- me too! -->
+
+  <h2>Queries Submitted</h2>
+  <!-- Only display if user has submitted a query -->
+  {% if files|length > 0 %}
+  <table class='history'>
+    <tr class='header'>
+      <th>Submission</th>
+      <th>Results</th>
+      <th>Date</th>
+      <th>Database</th>
+    </tr>
+    {% for q in queries %}
+    <tr class='hist_row'>
+      <td>{{ q.query_text }}</td>
+      <td>{{q.result}}</td>
+      <td>{{ (q.request_date|string)[:10] }}</td>
+      {% if q.use_private == False %}
+      <td>Public</td>
+      {% else %}
+      <td>Private</td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  <!-- No files uploaded -->
+  {% else %}
+  <div> You have not submitted a query. Click <a href='/'>here</a> to submit one. </div>
+  {% endif %}
+</div>
 </div>
 
 <script>
+
+  function openEmailForm() {
+    document.getElementById('emailForm').style.display = 'block';
+  }
+
+  function closeEmailForm() {
+    document.getElementById('emailForm').style.display = 'none';
+  }
+
+
+  $('#email_form').submit(function (e) {
+    e.preventDefault();
+
+    var formData = {
+      'email': $('#email').val(),
+      'password': $('#epassword').val()
+    }
+
+    $.ajax({
+      url: "{{ url_for('update_account') }}",
+      type: 'post',
+      data: JSON.stringify(formData),
+      contentType: 'application/json',
+      success: function (e) {
+        if (e == 'Update successful') {
+          closeEmailForm()
+        }
+        alert(e)
+      }
+    });
+  });
+
+
+  function openPasswordForm() {
+    document.getElementById('passwordForm').style.display = 'block';
+  }
+
+  function closePasswordForm() {
+    document.getElementById('passwordForm').style.display = 'none';
+  }
+
+
+  $('#password_form').submit(function (e) {
+    e.preventDefault();
+
+    if ($('#new_password') == $('confirm_password')) {
+      var formData = {
+        'password': $('#current_password').val(),
+        'new_password': $('#new_password').val()
+      }
+
+      $.ajax({
+        url: "{{ url_for('update_account') }}",
+        type: 'post',
+        data: JSON.stringify(formData),
+        contentType: 'application/json',
+        success: function (response) {
+          alert(response)
+        }
+      });
+    } else {
+      alert('New password does not match confirmation')
+    }
+  });
 
   function openDeleteForm() {
     document.getElementById('confirmForm').style.display = 'block';
@@ -61,6 +195,8 @@
   function closeDeleteForm() {
     document.getElementById('confirmForm').style.display = 'none';
   }
+
+
 </script>
 {% endblock %}
 

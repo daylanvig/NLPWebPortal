@@ -3,7 +3,7 @@ from NLPWebPortal import app, db, login_manager, \
     render_template, redirect, request, session, url_for, flash,\
     login_user, logout_user, current_user, login_required, LoginManager,\
     SQLAlchemy, os
-from NLPWebPortal.model import User, TrainingFile
+from NLPWebPortal.model import User, TrainingFile, Query, UserQuery
 from NLPWebPortal.interpreter import interpret_query
 from datetime import datetime
 from flask import jsonify
@@ -23,6 +23,7 @@ def query():
   query_text = data['query_text']
   private_check = data['private_check']
   curr_user = current_user.get_id()
+  queries = UserQuery.query.filter_by(user_id=current_user.get_id()).all()
 
   if (private_check and
       not curr_user):  # * Can't request private without being logged in
@@ -31,6 +32,32 @@ def query():
                   )  # ! This needs to be changed to prompt for a log in screen
   else:
     return jsonify(interpret_query(curr_user, query_text, private_check))
+
+
+@app.route('/update_account', methods=['POST'])
+@login_required
+def update_account():
+
+  data = request.json
+  email = data['email']
+  password = data['password']
+
+  user = User.query.filter_by(user_id=current_user.get_id()).first()
+  if user.check_password(password):
+    if email:
+      try:
+        user.email = email
+        db.session.commit()
+        return jsonify('Update successful')
+      except:
+        return jsonify('Email in use')
+    else:
+      new_password = data['new_password']  #! Needs requirements
+      user.set_password(new_password)
+      db.session.commit()
+      return jsonify('Update successful')
+  else:
+    return jsonify('Error: Password does not match records')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -89,8 +116,10 @@ def logOut():
 def account():
 
   files = TrainingFile.query.filter_by(user_id=current_user.get_id()).all()
+  queries = UserQuery.query.filter_by(user_id=current_user.get_id()).all()
   if request.method == 'GET':
-    return render_template('account.html', user=current_user, files=files)
+    return render_template(
+        'account.html', user=current_user, files=files, queries=queries)
   user = User.query.get(current_user.get_id())
   password = request.form['password']
 
@@ -103,7 +132,7 @@ def account():
     else:
       flash("Error, invalid password")
 
-  return redirect(url_for('account'))
+  #return redirect(url_for('account'))
 
 
 @app.route("/fileUpload", methods=["GET", "POST"])

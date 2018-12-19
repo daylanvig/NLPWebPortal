@@ -52,7 +52,7 @@ class TrainingFile(db.Model):
   file_name = db.Column(db.String(50), nullable=False)
   extension = db.Column(db.String(5), nullable=False)
   processed = db.Column(db.Boolean, default=False)
-  upload_date = db.Column(db.DateTime, nullable=False)
+  upload_date = db.Column(db.DateTime)
 
   def __init__(self, user_id, upload_name, extension):
     self.user_id = user_id
@@ -89,14 +89,15 @@ class Query(db.Model):
   __tablename__ = 'query'
 
   query_id = db.Column(db.Integer, primary_key=True)
-  query = db.Column(db.Text, nullable=False)
+  query_text = db.Column(db.Text, nullable=False)
   result = db.Column(db.Text)
   type = db.Column(db.String(50))
 
   __mapper_args__ = {'polymorphic_identity': 'query', 'polymorphic_on': 'type'}
 
-  def __init__(self, query):
-    self.query = query
+  def __init__(self, query, result):
+    self.query_text = query
+    self.result = result
 
 
 class UserQuery(Query):
@@ -104,13 +105,13 @@ class UserQuery(Query):
   query_id = db.Column(
       db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
-  use_private = (db.Boolean)
+  use_private = db.Column(db.Boolean, nullable=False)
   request_date = db.Column(db.DateTime, nullable=False)
 
   __mapper_args__ = {'polymorphic_identity': 'userquery'}
 
-  def __init__(self, query, user_id, use_private):
-    Query.__init__(self, query)
+  def __init__(self, query, user_id, use_private, result):
+    Query.__init__(self, query, result)
     self.user_id = user_id
     self.use_private = use_private
     self.request_date = datetime.utcnow()
