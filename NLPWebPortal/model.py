@@ -121,8 +121,15 @@ class TestQuery(Query):
 
   query_id = db.Column(
       db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
+  results_expected = db.Column(db.Text)
 
   __mapper_args__ = {'polymorphic_identity': 'testquery'}
 
   def __init__(self, query, results_expected):
     Query.__init__(self, query)
+    self.results
+
+
+class Report(db.Model):
+
+  report_id = db.Column(db.Integer, primary_key=True)

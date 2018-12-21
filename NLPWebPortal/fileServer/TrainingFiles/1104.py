@@ -7,10 +7,9 @@ BASE = os.path.abspath(os.path.dirname(__file__))
 BASE_DIR = os.path.join(BASE, 'FileServer')
 UPLOAD_DIR = os.path.join(BASE_DIR, "TrainingFiles")
 MODEL_DIR = os.path.join(BASE_DIR, "LanguageModels")
-REPORT_DIR = os.path.join(BASE_DIR, "Reports")
 #--------------
 
-SQLALCHEMY_DATABASE_URI = ('sqlite:///' + os.path.join(BASE_DIR, 'database.db'))
+SQLALCHEMY_DATABASE_URI = ('sqlite:////' + os.path.join(BASE_DIR, 'database.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 #Test if the directory exists or make it if it doesn't

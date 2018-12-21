@@ -31,7 +31,8 @@
         <div class='right'><i class="fas fa-times right" onclick='closeDeleteForm()'></i></div>
         <h3 class='warn'>Warning: This action is irreversible.</h3>
         <h3>Confirm password to delete your account.</h3>
-        <input type="password" placeholder="Enter password" name="password" id="password" required>
+        <input type="password" placeholder="Enter password" name="password" id="password" value="{{ request.form.password }}"
+          required>
         <div></div>
         <button type="submit" class="btn confirm_btn" style='margin-top: 30px' name='passwordbtn'>
           Confirm Delete
@@ -53,7 +54,7 @@
     <div class='form-popup' id='passwordForm'>
       <div class='right'><i class="fas fa-times right" onclick='closePasswordForm()'></i></div>
       <form action='#' class='subForm' id=password_form>
-        <h3>Update Email</h3>
+        <h3>Update Password</h3>
         <input class='form_field' type='password' placeholder="Current Password" id='current_password' required>
         <input class='form_field' type='password' placeholder="New Password" id='new_password' required>
         <input class='form_field' type="password" placeholder="Confirm New Password" id="confirm_password" required>
@@ -168,7 +169,7 @@
   $('#password_form').submit(function (e) {
     e.preventDefault();
 
-    if ($('#new_password') == $('confirm_password')) {
+    if ($('#new_password').val() == $('#confirm_password').val()) {
       var formData = {
         'password': $('#current_password').val(),
         'new_password': $('#new_password').val()

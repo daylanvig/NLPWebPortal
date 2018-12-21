@@ -1,64 +1,66 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    {% block head %}
-    <link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/mainpage.css') }}">
-    <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.5.0/css/all.css' integrity='sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU' crossorigin='anonymous'>
-    <script src="{{ url_for('static', filename='jquery.js') }}"></script>
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-        {% endblock %}
-        {% with messages = get_flashed_messages() %}
-        {% if messages %}
-                <ul class=flashes>
-                {% for message in messages %}
-                <li>{{ message }}</li>
-                {% endfor %}
-                </ul>
-        {% endif %}
-        {% endwith %}
+  {% block head %}
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/mainpage.css') }}">
+  <link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.5.0/css/all.css' integrity='sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU'
+    crossorigin='anonymous'>
+  <script src="{{ url_for('static', filename='jquery.js') }}"></script>
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  {% endblock %}
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+  <ul class=flashes>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+  {% endwith %}
 </head>
 
 <body>
 
-{% block content %}    
-<!-- Top of screen navigation bar-->
-<div class="navBar" id="topNav">
-        <a href="/" class="active">Home</a>
-        <a href="fileUpload">Upload Training Files</a>
-        <a href="account">My Account</a>
-        {% if current_user.is_authenticated %}
-                <a href="logout" class="active" id ="log">Log Out</a>
-        {% else %}
-                <a href="login" class="active" id ="log">Log In</a>
-        {% endif %}
-        <a href="javascript:void(0);" class="icon" onclick="hideMenuButtons()">
-                <i class="fas fa-align-justify"></i>
-        </a>
-</div>
-        
-{% endblock %}
-{% block footer %}
-<div id="footer">
+  {% block content %}
+  <!-- Top of screen navigation bar-->
+  <div class="navBar" id="topNav">
+    <a href="/" class="active">Home</a>
+    <a href="fileUpload">Upload Training Files</a>
+    <a href="account">My Account</a>
+    {% if current_user.is_authenticated %}
+    <a href="logout" id="log">Log Out</a>
+    {% else %}
+    <a href="login" class="active" id="log">Log In</a>
+    {% endif %}
+    <a href="javascript:void(0);" class="icon" onclick="hideMenuButtons()">
+      <i class="fas fa-align-justify"></i>
+    </a>
+  </div>
 
-        &copy; Copyright 2018 by <a href="https://github.com/daylanvig">Daylan Vig</a>.
-</div>
-<script>
-        function hideMenuButtons() {
-                var menuBar = document.getElementById("topNav");
+  {% endblock %}
+  {% block footer %}
+  <div id="footer">
 
-                if(menuBar.className === "navBar") {
-                        menuBar.className += " responsive";
-                        
-                }else {
-                        menuBar.className = "navBar";
-                }
+    &copy; Copyright 2018 by <a href="https://github.com/daylanvig">Daylan Vig</a>.
+  </div>
+  <script>
 
-        }
-</script>   
+    function hideMenuButtons() {
+      var menuBar = document.getElementById("topNav");
+
+      if (menuBar.className === "navBar") {
+        menuBar.className += " responsive";
+
+      } else {
+        menuBar.className = "navBar";
+      }
+
+    }
+  </script>
 
 
-{% endblock %}
+  {% endblock %}
 </body>
+
 </html>

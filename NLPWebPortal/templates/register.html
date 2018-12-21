@@ -2,99 +2,64 @@
 <html lang="en">
 
 <head>
-<link rel = "stylesheet" type= "text/css" href="{{ url_for('static',filename='styles/accountforms.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='styles/accountforms.css') }}">
 </head>
 
 {% extends "base.html" %}
 {% block content %}
-{{ super() }} <!-- Nav bar-->
+{{ super() }}
+<!-- Nav bar-->
 
 <div id="form-wrap">
-    <form name="registrationForm" action="" method=post class="form-horizontal" onsubmit="return validateForm()">
+  {% if form.errors %}
+  <ul class="errors">
+    {% for field_name, field_errors in form.errors|dictsort if field_errors %}
+    {% for error in field_errors %}
+    <li>{{ form[field_name].label }}: {{ error }}</li>
+    {% endfor %}
+    {% endfor %}
+  </ul>
+  {% endif %}
+  <form name="registrationForm" action="" method=post class="form-horizontal">
+    {{ form.csrf_token }}
     <h2>Sign up for NLP WebApp</h2>
     <div class="control-group">
-        <div class="controls">
-          <input type="email" id="email" name="email" class="input-xlarge"
-            placeholder="Enter Email" value="{{ request.form.email }}"
-            required>
-        </div>
-    </div>
- 
-    <div class="control-group">
-        <div class="controls">
-          <input type="password" id="password" name="password" class="input-xlarge"
-            placeholder="Enter Password" value="{{ request.form.password }}"
-            required>
-        </div>
+      <div class="controls">
+        {{ form.email(class_="input-xLarge", placeholder="Email Address") }}
+      </div>
     </div>
 
     <div class="control-group">
-        <div class="controls">
-          <input type="password" id="passwordConfirm" name="passwordConfirm" class="input-xlarge"
-            placeholder="Confirm Password" value="{{ request.form.password }}"
-            required>
-        </div>
+      <div class="controls">
+        {{ form.password(class_="input-xLarge", placeholder="Password") }}
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="controls">
+        {{ form.password_confirm(class_="input-xLarge", placeholder="Confirm Password") }}
+      </div>
     </div>
     <span id='message'></span>
- 
+
     <div class="control-group">
-        <div class="controls">
-          <button type="submit" class="btn btn-success">Signup</button>
-        </div>
+      <div class="controls">
+        <button type="submit" class="btn btn-success">Signup</button>
+      </div>
     </div>
     <a id="linkRegister" href="/login">Already have an account? Click here to sign in</a>
-    </form>
+  </form>
 </div>
 
 <script>
 
-    /* verify passwords match */
-    $('#password, #passwordConfirm').on('keyup', function () {
-        if ($('#password').val() == $('#passwordConfirm').val()) {
-            $('#message').html('').css('color', 'white');
-        } else 
-            $('#message').html('Passwords do not match').css('color', 'white');
-    });
-
-    function validateForm() {
-
-        var email = document.getElementById('email').value;
-        var password = document.getElementById('password').value;
-        var passwordConfirm = document.getElementById('passwordConfirm').value;
-
-        /* 
-        Password requirements 
-        Can't use email
-        Must match confirmation
-        At least 8 characters in length
-        At least one letter, one number
-        */
-        if(password == email){
-            $('#message').html('Password must not be identical to email.').css('color', 'white');
-            return false;
-        }
-        if(password != passwordConfirm){
-            $('#message').html('Passwords must match!').css('color', 'white');
-            return false;
-        }
-        if(password.length < 8){ 
-            $('#message').html('Password too short. Please use at least 8 characters.').css('color', 'white');
-            return false;
-        }
-        if(!(/\d/.test(password))){
-            $('#message').html('Password should contain at least one digit from 0-9.').css('color', 'white');
-            return false;
-        }
-        if(!(/\d/.test(password))){
-            $('#message').html('Password should contain at least one digit from 0-9.').css('color', 'white');
-            return false;
-        }
-        if(!(/[a-zA-Z]/.test(password))){
-            $('#message').html('Password should contain at least one character from a-z or A-Z.').css('color', 'white');
-            return false; 
-        }
-        return true;
-    }
+  /* verify passwords match client side for convenience*/
+  $('#password, #password_confirm').on('keyup', function () {
+    if ($('#password').val() == $('#password_confirm').val()) {
+      $('#message').html('').css('color', 'white');
+    } else
+      $('#message').html('Passwords do not match').css('color', 'white');
+  });
 
 </script>
 

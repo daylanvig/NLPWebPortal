@@ -23,8 +23,13 @@
       <div id='query_entry' name='query_entry'></div>
       <div style='text-align: right'>
         <input type='text' id='text_value' name='text_value' style='display: none'>
+        {% if uid %}
         <input type='checkbox' name='private_check' value='1' id='private_check'>
         <span id='privateFlag' style='margin-right: 10px'>Use Private Database</span>
+        {% else %}
+        <input type='checkbox' name='private_check' value='1' disabled='disabled' id='private_check'>
+        <span id='privateFlag' style='margin-right: 10px'>Use Private Database</span>
+        {% endif %}
         <button id='submit'>Submit Query</button>
       </div>
     </div>
