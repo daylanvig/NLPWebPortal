@@ -146,17 +146,21 @@ def check_files():
     i.processed = True
 
   db.session.commit()
-  users_added.append('shared')
+
   # Any users who added files should have the contents merged and models retrained
+  users_added.append('shared')
   users_added = list(set(users_added))
 
-  for u in users_added:
-    merge_files(u)
-    train_model(u)
+  if (users_added == ['shared']):
+    # TODO Error handle
+  else:
+    for u in users_added:
+      merge_files(u)
+      train_model(u)
 
-  # shared file write
-  with open(shared_file, 'wb') as file_full_handle:
-    pickle.dump(complete_content, file_full_handle)
+    # shared file write
+    with open(shared_file, 'wb') as file_full_handle:
+      pickle.dump(complete_content, file_full_handle)
 
   return users_added
 
@@ -168,23 +172,23 @@ def generate_weights():
   """
 
   users_added = check_files()
-
-  for user_id in users_added:
-    # Open the complete files
-    input_file = os.path.join(app.config['MODEL_DIR'],
-                              "user-" + str(user_id) + '.data')
-    with open(input_file, 'rb') as fh:
-      content = pickle.load(fh)
-    string_content = " ".join(str(e) for e in content)
-    try:
-      lm = LanguageModel(string_content)
-      lm.train_language_model("char" + str(user_id))
-      output_file = os.path.join(app.config['MODEL_DIR'],
-                                 "user-char" + str(user_id) + '.data')
-      with open(output_file, 'wb') as fh:
-        pickle.dump(string_content, fh)
-    except:
-      print('No new files')
+  if users_added = ['shared']: #If no new users (ie only the shared file tries to update)
+    for user_id in users_added:
+      # Open the complete files
+      input_file = os.path.join(app.config['MODEL_DIR'],
+                                "user-" + str(user_id) + '.data')
+      with open(input_file, 'rb') as fh:
+        content = pickle.load(fh)
+      string_content = " ".join(str(e) for e in content)
+      try:
+        lm = LanguageModel(string_content)
+        lm.train_language_model("char" + str(user_id))
+        output_file = os.path.join(app.config['MODEL_DIR'],
+                                   "user-char" + str(user_id) + '.data')
+        with open(output_file, 'wb') as fh:
+          pickle.dump(string_content, fh)
+      except:
+        print('No new files')
 
 
 generate_weights()

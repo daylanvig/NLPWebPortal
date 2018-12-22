@@ -45,68 +45,176 @@
     }
   });
 
+  var Delta = Quill.import('delta');
+
+  var previousContents = $('.ql-editor').html();
+
+  editor.on('text-change', function (delta, old_delta, source) {
+    var contents = editor.getContents();
+    var index = (delta.ops[0].retain);  //Location of change
+    var text = editor.getText();
+    if (source == 'user') {
+      if (delta.ops.length > 1) { // If there's been a change beyond initialization
+        var new_op = delta.ops[1]; //grab change dict
+
+        if (new_op.hasOwnProperty('delete')) { // If something was deleted
+          if ((text.charAt(index - 1) == '<') && (text.charAt(index) == '>')) { //If W or S or C was deleted
+            change = new Delta().retain(index - 2).delete(4);
+            new_contents = contents.compose(change);
+            editor.setContents(new_contents, 'silent');
+          }
+          else if (text.charAt(index - 2) == '<' && text.charAt(index) == '_') { //If '>' was deleted
+            change = new Delta().retain(index - 2).delete(4);
+            new_contents = contents.compose(change);
+            editor.setContents(new_contents, 'silent');
+          }
+          else if (text.charAt(index - 1) == '_' && text.charAt(index + 1) == '>') { // If '<' was deleted
+            console.log('z')
+          }
+          else if (text.charAt(index - 1) == '>' && text.charAt(index - 3) == '<') { //Delete second underscore
+
+          } else if (text.charAt(index) == '<' && text.charAt(index + 2) == '>') {
+
+          }
+        } else if (new_op.hasOwnProperty('insert')) {
+
+        } else {
+
+        }
+      }
+    }
+  });
+
   /* Add buttons for functionality */
   var missingCharBtn = document.querySelector('#missing_character');
   missingCharBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    var index = editor.getSelection();
-    if (index == null) {
-      index = editor.getLength();
-      if (index == 1) {
-        index = 0;
-      }
+
+    var length = editor.getLength();
+    var idx = 0;
+    var contents = editor.getContents();
+
+    if (length != 1) { //if not an empty window
+      idx = editor.getSelection().index;
+
+      var delta = new Delta([{
+        retain: idx
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      },
+      {
+        insert: '<C>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
+    } else {
+      var delta = new Delta([{
+        insert: '_', attributes: { background: null, bold: null }
+      }, {
+        insert: '<C>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      }, {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
     }
 
-    editor.insertText(index, '<C>', {
-      'background-color': '#ffdd1b',
-      'bold': true,
-    })
-    editor.format('background-color', 'white');
-    editor.format('bold', false);
+    new_contents = contents.compose(delta);
+    editor.setContents(new_contents, source = 'silent');
+    editor.setSelection(idx + 5);
   });
 
   var missingWordBtn = document.querySelector('#missing_word');
   missingWordBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    var index = editor.getSelection();
-    if (index == null) {
-      index = editor.getLength();
-      if (index == 1) {
-        index = 0;
-      }
+
+    var length = editor.getLength();
+    var idx = 0;
+    var contents = editor.getContents();
+
+    if (length != 1) { //if not an empty window
+      idx = editor.getSelection().index;
+
+      var delta = new Delta([{
+        retain: idx
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      },
+      {
+        insert: '<W>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
+    } else {
+      var delta = new Delta([{
+        insert: '_', attributes: { background: null, bold: null }
+      }, {
+        insert: '<W>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      }, {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
     }
-    editor.insertText(index, '<W>', {
-      'background-color': '#ffe81a',
-      'bold': true
-    })
-    editor.format('background-color', 'white');
-    editor.format('bold', false);
-    editor.insertText(' ');
+
+    new_contents = contents.compose(delta);
+    editor.setContents(new_contents, source = 'silent');
+    editor.setSelection(idx + 5);
   });
 
   var missingSentBtn = document.querySelector('#missing_sentence');
   missingSentBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    var index = editor.getSelection();
-    if (index == null) {
-      index = editor.getLength();
-      if (index == 1) {
-        index = 0;
-      }
+    var length = editor.getLength();
+    var idx = 0;
+    var contents = editor.getContents();
+
+    if (length != 1) { //if not an empty window
+      idx = editor.getSelection().index;
+
+      var delta = new Delta([{
+        retain: idx
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      },
+      {
+        insert: '<S>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      },
+      {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
+    } else {
+      var delta = new Delta([{
+        insert: '_', attributes: { background: null, bold: null }
+      }, {
+        insert: '<S>', attributes: {
+          background: '#ffdd1b', bold: true
+        }
+      }, {
+        insert: '_', attributes: { background: null, bold: null }
+      }]);
     }
 
-    editor.insertText(index, '<S>', {
-      'background-color': '#ffe719',
-      'bold': true
-    })
-    editor.format('background-color', 'white');
-    editor.format('bold', false);
-    editor.insertText(' ');
+    new_contents = contents.compose(delta);
+    editor.setContents(new_contents, source = 'silent');
+    editor.setSelection(idx + 5);
   });
 
 
   $('#submit').click(function (e) {
     e.preventDefault();
+    $('#submit').prop('disabled', true);
 
     var query_text = {
       'query_text': $('.ql-editor').html(),
@@ -120,6 +228,10 @@
       contentType: 'application/json',
       success: function (response) {
         $('.ql-editor').html(response);
+        $('#submit').prop('disabled', false);
+      },
+      error: function () {
+        alert('Private database selected but no user is logged in')
       }
     });
   });

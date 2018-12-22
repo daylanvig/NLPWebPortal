@@ -1,4 +1,4 @@
-from sqlalchemy import exc
+from sqlalchemy import exc, func
 from NLPWebPortal import *
 from datetime import datetime
 from flask import jsonify
@@ -54,9 +54,8 @@ def query():
   curr_user = current_user.get_id()
 
   # If user wants private, they must be logged in
-  # ! This needs to be changed to prompt for a log in screen
   if (private_check and not curr_user):
-    return jsonify('Err not log')
+    raise Exception('Not logged in')
   else:
     return jsonify(interpret_query(curr_user, query_text, private_check))
 
@@ -167,7 +166,7 @@ def login():
     password = loginform.password.data
     remember_me = loginform.remember_check.data
 
-    registered_user = User.query.filter_by(email=email).first()
+    registered_user = User.query.filter(User.email.ilike(email)).first()
     if registered_user:  # Make sure a user with the email exists
       #Verify password, try to log in, redirect as needed
       if (registered_user.check_password(password)):
