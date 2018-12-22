@@ -112,48 +112,46 @@ def interpret_query(curr_user, query_text, private_check):
   
   Args:
     curr_user (int): The ID of the currently logged in user. If no user is logged in, will be 'None'
-    query_text (String): A string of text submitted by a user, containing html tags
+    query_text (String): A string of text submitted by a user, containing _<*>_ to symbolize missing information
     private_check (Boolean): Will be True if the user requested to use their private database, otherwise will False.
       Must be 'False' if curr_user is 'None'
   
   Returns:
     String: The text with fragments removed / replaced with valid details.
   """
-
-  soup = BeautifulSoup(query_text, features='html.parser')
-  html_contents = soup.p
-
   query_list = ""
-  raw_text = ""
   result_list = []
 
-  # * Iterate through query contents to id missing values
-  for child in html_contents.children:
-
-    if (str(child).startswith(  #predict character
-        '<strong style="background-color: rgb(255, 221, 27);">')):
-      result = interpret_query_character(curr_user, private_check, query_list)
-      query_list += result
-      raw_text += '<C>'
-      result_list.append(result)
-    elif (str(child).startswith(  #predict word
-        "<strong style=\"background-color: rgb(255, 232, 26);\">")):
-      result = interpret_query_word(curr_user, private_check, query_list)
-      raw_text += '<W>'
-      query_list += result + " "
-      result_list.append(result)
-    elif (str(child).startswith(  #predict sentence
-        "<strong style=\"background-color: rgb(255, 231, 25);\">")):
-      result = interpret_query_sentence(curr_user, private_check, query_list)
-      raw_text += '<S>. '
-      query_list += result + ". "
-      result_list.append(result)
-    elif (not str(child).startswith('<')):  #append to sentence any raw text
-      query_list += str(child)
-      raw_text += str(child)
+  position = 0
+  pause_for = 0
+  for c in query_text:
+    if pause_for == 0:  # If _< is detected, a pause must be taken to not copy the rest of the expression
+      if c == '_':
+        if (len(query_text) >=  #error handling
+            position + 2) and query_text[position + 1] == '<':
+          pause_for = 4
+          if query_text[position + 2] == 'C':
+            result = interpret_query_character(curr_user, private_check,
+                                               query_list)
+            query_list += result
+            result_list.append(result)
+          elif query_text[position + 2] == 'W':
+            result = interpret_query_word(curr_user, private_check, query_list)
+            query_list += result + " "
+            result_list.append(result)
+          elif query_text[position + 2] == 'S':
+            result = interpret_query_sentence(curr_user, private_check,
+                                              query_list)
+            query_list += result + ". "
+            result_list.append(result)
+      else:
+        query_list += c
+    position += 1
+    if pause_for > 0:
+      pause_for -= 1
 
   if (curr_user):
     result_list = ', '.join(result_list)
-    db.session.add(UserQuery(raw_text, curr_user, private_check, result_list))
+    db.session.add(UserQuery(query_text, curr_user, private_check, result_list))
     db.session.commit()
   return query_list

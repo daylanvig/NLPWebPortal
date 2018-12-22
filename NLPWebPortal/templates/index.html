@@ -47,12 +47,11 @@
 
   var Delta = Quill.import('delta');
 
-  var previousContents = $('.ql-editor').html();
-
   editor.on('text-change', function (delta, old_delta, source) {
     var contents = editor.getContents();
     var index = (delta.ops[0].retain);  //Location of change
     var text = editor.getText();
+    var change = null;
     if (source == 'user') {
       if (delta.ops.length > 1) { // If there's been a change beyond initialization
         var new_op = delta.ops[1]; //grab change dict
@@ -60,26 +59,35 @@
         if (new_op.hasOwnProperty('delete')) { // If something was deleted
           if ((text.charAt(index - 1) == '<') && (text.charAt(index) == '>')) { //If W or S or C was deleted
             change = new Delta().retain(index - 2).delete(4);
-            new_contents = contents.compose(change);
-            editor.setContents(new_contents, 'silent');
           }
           else if (text.charAt(index - 2) == '<' && text.charAt(index) == '_') { //If '>' was deleted
-            change = new Delta().retain(index - 2).delete(4);
-            new_contents = contents.compose(change);
-            editor.setContents(new_contents, 'silent');
+            change = new Delta().retain(index - 3).delete(4);
           }
           else if (text.charAt(index - 1) == '_' && text.charAt(index + 1) == '>') { // If '<' was deleted
-            console.log('z')
+            change = new Delta().retain(index - 1).delete(4);
           }
           else if (text.charAt(index - 1) == '>' && text.charAt(index - 3) == '<') { //Delete second underscore
-
-          } else if (text.charAt(index) == '<' && text.charAt(index + 2) == '>') {
-
+            change = new Delta().retain(index - 4).delete(4);
+          } else if (text.charAt(index) == '<' && text.charAt(index + 2) == '>') { //first underscore
+            change = new Delta().retain(index).delete(4);
           }
         } else if (new_op.hasOwnProperty('insert')) {
-
-        } else {
-
+          if ((text.charAt(index - 1) == '_') && (text.charAt(index + 1) == '<')) { //Insert first position:  _(here)<*>_
+            change = new Delta().retain(index).delete(1);
+          }
+          else if (text.charAt(index - 1) == '<' && text.charAt(index + 2) == '>') { //Second position _<(here)*>_
+            change = new Delta().retain(index).delete(1);
+          }
+          else if (text.charAt(index - 3) == '_' && text.charAt(index - 2) == '<') { // Third _<*(here)>_
+            change = new Delta().retain(index).delete(1);
+          }
+          else if (text.charAt(index + 1) == '_' && text.charAt(index - 1) == '>') { //Fourth _<*>(here)_
+            change = new Delta().retain(index).delete(1);
+          }
+        }
+        if (change != null) {
+          new_contents = contents.compose(change);
+          editor.setContents(new_contents, 'silent');
         }
       }
     }
@@ -217,7 +225,7 @@
     $('#submit').prop('disabled', true);
 
     var query_text = {
-      'query_text': $('.ql-editor').html(),
+      'query_text': $('.ql-editor').text(),
       'private_check': $('#private_check').is(':checked')
     }
 

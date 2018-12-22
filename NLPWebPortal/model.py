@@ -95,7 +95,7 @@ class Query(db.Model):
 
   __mapper_args__ = {'polymorphic_identity': 'query', 'polymorphic_on': 'type'}
 
-  def __init__(self, query, result):
+  def __init__(self, query, result=''):
     self.query_text = query
     self.result = result
 
@@ -121,13 +121,20 @@ class TestQuery(Query):
 
   query_id = db.Column(
       db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
-  results_expected = db.Column(db.Text)
+  results_expected = db.Column(db.String)
 
   __mapper_args__ = {'polymorphic_identity': 'testquery'}
 
   def __init__(self, query, results_expected):
     Query.__init__(self, query)
-    self.results
+    self.results_expected = ""
+
+  def __repr__(self):
+    return ' [%d]   %r' % (self.query_id, self.query_text)
+
+  def detailed(self):
+    return 'Fragment: %r \nExpected Result: %r' % (self.query_text,
+                                                   self.results_expected)
 
 
 class Report(db.Model):

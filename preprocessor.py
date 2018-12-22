@@ -36,6 +36,7 @@ def clean_file(text):
     else:
       wordDB = Dictionary(word)
       db.session.add(wordDB)
+      db.session.commit()
 
   # Stemming
   ps = WordNetLemmatizer()
