@@ -150,7 +150,8 @@ def interpret_query(curr_user, query_text, private_check):
     if pause_for > 0:
       pause_for -= 1
 
-  if (curr_user):
+  if (curr_user
+     ):  # If there's a current user the results should be stored for history
     result_list = ', '.join(result_list)
     db.session.add(UserQuery(query_text, curr_user, private_check, result_list))
     db.session.commit()
