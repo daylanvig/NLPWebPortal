@@ -1,195 +1,129 @@
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-import sys
-import os
-import io
-from NLPWebPortal import app, db
-from NLPWebPortal.model import User, TrainingFile, Dictionary
-from NLPWebPortal.neuralNetwork import LanguageModel
-import json
+import string
 import pickle
+import os
+import collections
+from NLPWebPortal import app, db, TrainingFile, Dictionary, User, LanguageModel
+from nltk.tokenize import word_tokenize
+
+model = app.config['MODEL_DIR']
+upload = app.config['UPLOAD_DIR']
 
 
-def clean_file(text):
-  """Performs preprocessing on text so that it can be more readily used for Natural Language Processing Tasks
-        
-        Args:
-                text (String): String of words
-        
-        Returns:
-                [String]: List of cleaned words ready for NLP use
-        """
+def load_text(filename):
 
-  text = text.lower()
+  file = open(os.path.join(upload, filename), 'r', encoding='utf-8')
+  text = file.read()
 
-  tokens = word_tokenize(text)
+  file.close()
+  return text
 
-  # Build a dictionary
-  # TODO: Eval if should be before stemming
+
+def clean_text(text):
+
+  text = text.lower()  # Lowercase to reduce vocab
+
+  tokens = word_tokenize(text)  #Tokenize
+
+  table = str.maketrans('', '', string.punctuation)  #Punctuation removal
+  tokens = [w.translate(table) for w in tokens]
+  tokens = [word for word in tokens if word.isalpha()]
+
+  # To save querying db many times store in dict
+  word_dict = dict()
   for word in tokens:
-    wordDB = False
+    if word in word_dict:
+      word_dict[word] += 1
+    else:
+      word_dict[word] = 1
+
+  for word, count in word_dict.items():
     wordDB = db.session.query(Dictionary).filter(
         Dictionary.word == word).first()
-    if (wordDB):
-      wordDB.increment()
+    if wordDB:
+      wordDB.increment(count)  #If word exists, increment count
     else:
-      wordDB = Dictionary(word)
-      db.session.add(wordDB)
-      db.session.commit()
-
-  # Stemming
-  ps = WordNetLemmatizer()
-  stem_words = []
-  for word in tokens:
-    if (word.isalpha()):  #Remove punctuation
-      stem_words.append(ps.lemmatize(word))
-
-  # Commit changes
+      db.session.add(Dictionary(word, count))  #Else create it
   db.session.commit()
-  return stem_words
+
+  return tokens
 
 
-def merge_files(user_id):
+def create_sequences(tokens):
 
-  if (user_id != 'shared'):
-    files_owned = db.session.query(TrainingFile).filter(
+  length = 26
+  sequences = list()
+  for n in range(length, len(tokens)):
+    sequence = tokens[n - length:n]
+    line = ' '.join(sequence)
+    sequences.append(line)
+
+  return sequences
+
+
+def merge_sequences(user_id):
+
+  if user_id != 'shared':
+    file_list = db.session.query(TrainingFile).filter(
         TrainingFile.user_id == user_id).all()
   else:
-    files_owned = db.session.query(TrainingFile).all()
+    file_list = db.session.query(TrainingFile).all()
 
-  complete_file = []
+  sequence_list = []
 
-  for f in files_owned:  #For every file owned by the user, open the pickle(.data) file and extend to one list
+  for f in file_list:
+    in_file = os.path.join(model, str(f.get_id()) + '.data')  #load file
+    with open(in_file, 'rb') as handle:
+      sequence = pickle.load(handle)
 
-    input_file = os.path.join(app.config['MODEL_DIR'],
-                              str(f.get_id()) + '.data')
+    sequence_list.extend(sequence)
 
-    with open(input_file, 'rb') as file_handle:
-      words = pickle.load(file_handle)
+  #Store complete file
 
-    complete_file.extend(words)
+  out_file = os.path.join(model, 'user-' + str(user_id) + '.data')
+  with open(out_file, 'wb') as handle:
+    pickle.dump(sequence_list, handle)
 
-  output_file = os.path.join(app.config['MODEL_DIR'],
-                             "user-" + str(user_id) + '.data')
-
-  with open(output_file, 'wb') as completeOut:
-    pickle.dump(complete_file, completeOut)
-
-
-def train_model(user_id):
-
-  # Open the complete files
-  input_file = os.path.join(app.config['MODEL_DIR'],
-                            "user-" + str(user_id) + '.data')
-
-  #If the input file doesnt exist
-  try:
-    with open(input_file, 'rb') as file_in_train:
-      dumped_words = pickle.load(file_in_train)
-      lm = LanguageModel(dumped_words)
-      lm.train_language_model(user_id)
-  except:
-    # TODO: Error handling/create file
-    print(0)
+  return sequence_list
 
 
-def check_files():
-  """
-  [summary]
-  
-  [description]
-  
-  Returns:
-    [type]: [description]
-  """
+def run():
 
-  # load complete processed file database
-  shared_file = os.path.join(app.config['MODEL_DIR'], 'shared.data')
+  # Find new files
+  new_files = db.session.query(TrainingFile).filter(
+      TrainingFile.processed == False)
 
-  try:
-    with open(shared_file, 'rb') as file_handle:
-      complete_content = pickle.load(file_handle)
-  except:
-    complete_content = []
-
-  # Check new
-  training_files = db.session.query(TrainingFile).all()
   users_added = []
 
-  # Iterate through the unprocessed files
-  for i in training_files:
-    file_name = i.name()
-    users_added.append(i.user_id)
+  for f in new_files:
+    users_added.append(f.user_id)
+    # Load and create tokens
+    tokens = clean_text(load_text(f.name()))
 
-    # TODO: Fix encoding issues using openFile method
-    try:
-      file_contents = open(
-          os.path.join(app.config['UPLOAD_DIR'], file_name),
-          'rt',
-          encoding='utf-8')
-    except:
-      file_contents = open(
-          os.path.join(app.config['UPLOAD_DIR'], file_name), 'rt')
+    # Convert to sequences
+    content = create_sequences(tokens)
 
-    file_text = file_contents.read()  #contents in memory
-    file_contents.close()
+    #Save sequences in a dump as '/UPLOAD/<FILE_ID>.data'
+    fn = os.path.join(model, str(f.get_id()) + '.data')
+    with open(fn, 'wb') as handle:
+      pickle.dump(content, handle)
 
-    stemmed = clean_file(file_text)
-    complete_content.extend(stemmed)
-    outName = os.path.join(app.config['MODEL_DIR'], str(i.get_id()) + '.data')
+    #Mark as processed to stop repeats
+    #f.processed = True
+    db.session.commit()
 
-    # * Save stemmed words to disk so don't have to keep cleaning
-    with open(outName, 'wb') as file_handle:
-      pickle.dump(stemmed, file_handle)
-
-    # * Update DB
-    i.processed = True
-
-  db.session.commit()
-
-  # Any users who added files should have the contents merged and models retrained
-  users_added.append('shared')
-  users_added = list(set(users_added))
-
-  if (users_added == ['shared']):
-    # TODO Error handle
-  else:
+  if users_added:
+    users_added.append('shared')
+    users_added = list(set(users_added))
     for u in users_added:
-      merge_files(u)
-      train_model(u)
+      #Any user who has added a file, merge
+      clean_sequence = merge_sequences(u)
+      # Train model
+      lm = LanguageModel(clean_sequence)
+      lm.train_model(u)
 
-    # shared file write
-    with open(shared_file, 'wb') as file_full_handle:
-      pickle.dump(complete_content, file_full_handle)
-
-  return users_added
-
-
-def generate_weights():
-  """
-  Interface function that calls the functions necessary to clean files and generate weights for the neural network.
-
-  """
-
-  users_added = check_files()
-  if users_added = ['shared']: #If no new users (ie only the shared file tries to update)
-    for user_id in users_added:
-      # Open the complete files
-      input_file = os.path.join(app.config['MODEL_DIR'],
-                                "user-" + str(user_id) + '.data')
-      with open(input_file, 'rb') as fh:
-        content = pickle.load(fh)
-      string_content = " ".join(str(e) for e in content)
-      try:
-        lm = LanguageModel(string_content)
-        lm.train_language_model("char" + str(user_id))
-        output_file = os.path.join(app.config['MODEL_DIR'],
-                                   "user-char" + str(user_id) + '.data')
-        with open(output_file, 'wb') as fh:
-          pickle.dump(string_content, fh)
-      except:
-        print('No new files')
+  else:
+    print('No new files')
 
 
-generate_weights()
+if __name__ == "__main__":
+  run()

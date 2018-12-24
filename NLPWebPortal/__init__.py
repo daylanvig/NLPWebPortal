@@ -1,4 +1,5 @@
 import os
+import sys
 from flask import Flask, render_template, redirect, request, session, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_user, logout_user, current_user, login_required, LoginManager
@@ -18,10 +19,10 @@ login_manager.login_view = 'login'
 
 #Imports
 from NLPWebPortal.model import User, TrainingFile, Dictionary, UserQuery, TestQuery
+from NLPWebPortal.languageModel import LanguageModel
 from NLPWebPortal.interpreter import interpret_query
 from NLPWebPortal.form import LoginForm, RegisterForm
 import NLPWebPortal.routes
-import NLPWebPortal.neuralNetwork
 
 #initialize database
 db.create_all()
@@ -29,7 +30,7 @@ db.create_all()
 __all__ = [
     'render_template', 'redirect', 'request', 'session', 'url_for', 'flash',
     'SQLAlchemy', 'login_user', 'logout_user', 'current_user', 'login_required',
-    'LoginManager', 'os', 'app', 'db', 'login_manager', 'interpret_query',
-    'User', 'TrainingFile', 'Dictionary', 'UserQuery', 'TestQuery', 'LoginForm',
-    'RegisterForm'
+    'LoginManager', 'os', 'sys', 'app', 'db', 'login_manager',
+    'interpret_query', 'User', 'TrainingFile', 'Dictionary', 'UserQuery',
+    'TestQuery', 'LoginForm', 'RegisterForm', 'LanguageModel'
 ]

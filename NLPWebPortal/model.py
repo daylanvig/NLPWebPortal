@@ -74,12 +74,12 @@ class Dictionary(db.Model):
   word = db.Column(db.String, primary_key=True)
   count = db.Column(db.Integer, nullable=False)
 
-  def __init__(self, word):
+  def __init__(self, word, count):
     self.word = word
-    self.count = 1
+    self.count = count
 
-  def increment(self):
-    self.count = self.count + 1
+  def increment(self, count):
+    self.count = self.count + count
 
   def __repr__(self):
     return "(%s, %d)" % (self.word, self.count)

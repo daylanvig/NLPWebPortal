@@ -5,7 +5,7 @@ import colorama
 from termcolor import cprint
 from sqlalchemy import func
 from NLPWebPortal import app, db
-from NLPWebPortal.model import TestQuery, TestResult, Report, User
+from NLPWebPortal.model import TestQuery, TestResult, Report, User, TrainingFile, Dictionary, Query, UserQuery
 from NLPWebPortal.interpreter import interpret_query
 import warnings
 from sqlalchemy.exc import SAWarning
@@ -295,9 +295,30 @@ def new_report():
     exit()
 
 
-def maintain_accounts():
+def maintain_accounts():  #TODO Maybe make this a thing
   r = db.session.query(Report).all()
   for a in r:
+    db.session.delete(a)
+  u = db.session.query(User).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(TrainingFile).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(Dictionary).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(Query).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(UserQuery).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(TestQuery).all()
+  for a in u:
+    db.session.delete(a)
+  u = db.session.query(TestResult).all()
+  for a in u:
     db.session.delete(a)
   db.session.commit()
 

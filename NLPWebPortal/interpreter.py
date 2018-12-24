@@ -1,14 +1,12 @@
 import os
 import sys
-from NLPWebPortal import app
-from NLPWebPortal.model import db, UserQuery
-from NLPWebPortal.neuralNetwork import LanguageModel
+from . import db, app, UserQuery, os, sys, LanguageModel, Dictionary
 from bs4 import BeautifulSoup
 import pickle
 import random
 
 
-def interpret_query_load(user_id, private_db, char=""):
+def interpret_query_load(user_id, private_db):
   """
   Loader method to configure query settings, called by the word, char, and sentence specific functions
 
@@ -17,7 +15,6 @@ def interpret_query_load(user_id, private_db, char=""):
   user_id (int/String): Identification number associated with the user's account. Will be an int if the user is logged in
     or otherwise will be None
   private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
-  char (str, optional): Defaults to "". Will be 'char' if interpreting a character value to load different weights (character model specific)
 
   Returns:
   [String], String: A list of words used in the model, the path to the weights
@@ -29,14 +26,13 @@ def interpret_query_load(user_id, private_db, char=""):
     file_name = str(user_id)
 
   words_file_path = os.path.join(app.config['MODEL_DIR'],
-                                 'user-' + char + file_name + '.data')
+                                 'user-' + file_name + '.data')
   weight_file_path = os.path.join(app.config['MODEL_DIR'],
-                                  'weights.' + char + file_name + '.hdf5')
+                                  'weights-' + file_name + '.h5')
+  tokenizer_file_path = os.path.join(app.config['MODEL_DIR'],
+                                     'token-' + file_name + '.pk1')
 
-  with open(words_file_path, 'rb') as fh:
-    dumped_words = pickle.load(fh)
-
-  return dumped_words, weight_file_path
+  return words_file_path, weight_file_path, tokenizer_file_path
 
 
 def interpret_query_word(user_id, private_db, query_text):
@@ -54,10 +50,8 @@ def interpret_query_word(user_id, private_db, query_text):
     String: The missing word as predicted by the model 
   """
 
-  dumped_words, weights = interpret_query_load(user_id, private_db)
-
-  lm = LanguageModel(dumped_words)
-  return (lm.predict_word(weights, query_text))
+  words, weights, tokens = interpret_query_load(user_id, private_db)
+  return LanguageModel.predict_word(words, weights, tokens, query_text)
 
 
 def interpret_query_sentence(user_id, private_db, query_text):
@@ -76,15 +70,16 @@ def interpret_query_sentence(user_id, private_db, query_text):
     String: The missing sentence as predicted by the model 
 
   """
-  dumped_words, weights = interpret_query_load(user_id, private_db)
   words_wanted = random.randint(5, 20)
 
-  lm = LanguageModel(dumped_words)
-  sentence = lm.predict_word(weights, query_text, words_wanted).capitalize()
+  words, weights, tokens = interpret_query_load(user_id, private_db)
+  sentence = LanguageModel.predict_word(words, weights, tokens, query_text,
+                                        words_wanted)
+  sentence = sentence.capitalize()
   return sentence
 
 
-def interpret_query_character(user_id, private_db, query_text):
+def interpret_query_character(user_id, private_db, query_text, partial_word):
   """
   Configures and calls the language model to predict a character. Called by interpret_query(...).
 
@@ -98,10 +93,15 @@ def interpret_query_character(user_id, private_db, query_text):
   Returns:
     String: The missing word as predicted by the model 
   """
-  dumped_words, weights = interpret_query_load(user_id, private_db, 'char')
-
-  lm = LanguageModel(dumped_words)
-  return (lm.predict_word(weights, query_text, 1, True)[0])
+  partial_word = partial_word.lower()
+  print(partial_word)
+  possible = db.session.query(Dictionary).filter(
+      Dictionary.word.ilike(partial_word)).all()
+  print(possible)
+  if len(possible) == 1:
+    return possible[0].word
+  words, weights, tokens = interpret_query_load(user_id, private_db)
+  return '0'
 
 
 def interpret_query(curr_user, query_text, private_check):
@@ -131,8 +131,25 @@ def interpret_query(curr_user, query_text, private_check):
             position + 2) and query_text[position + 1] == '<':
           pause_for = 4
           if query_text[position + 2] == 'C':
+            if query_list[-1] != ' ':  #if not the start of a word
+              partial_word = query_list.split()
+              partial_word = partial_word[-1]
+            else:
+              partial_word == ''
+            partial_word += '_'
+            try:
+              for c in query_text[position + 5:]:
+                #From the end of the >_ notation until the end of the word
+                if c == ' ':
+                  break
+                else:
+                  partial_word += c
+            except:  #End of word (ie no position+4)
+              pass
+            partial_word = partial_word.replace('_<C>_', '_')  #multi char
             result = interpret_query_character(curr_user, private_check,
-                                               query_list)
+                                               query_list, partial_word)
+            pause_for = len(result) - 1
             query_list += result
             result_list.append(result)
           elif query_text[position + 2] == 'W':
