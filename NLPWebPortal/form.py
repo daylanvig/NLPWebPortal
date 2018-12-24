@@ -70,3 +70,12 @@ class LoginForm(FlaskForm):
   password = PasswordField('Password',
                            [InputRequired("Please enter your password")])
   remember_check = BooleanField('remember_check')
+
+
+class ResetForm(FlaskForm):
+
+  password = PasswordField('Password', [
+      InputRequired("Please enter your password"),
+      EqualTo('password_confirm', 'Passwords do not match'), valid_password
+  ])
+  password_confirm = PasswordField('Repeat Password')

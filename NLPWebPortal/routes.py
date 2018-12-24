@@ -1,8 +1,11 @@
-from sqlalchemy import exc, func
-from NLPWebPortal import *
-from datetime import datetime
+import random
+import string
+
 from flask import jsonify
+from sqlalchemy import exc, func
 from werkzeug.utils import secure_filename
+
+from NLPWebPortal import *
 
 
 @app.route('/')
@@ -23,10 +26,9 @@ def index():
   uid = current_user.get_id()
   try:
     file_exist = TrainingFile.query.filter_by(user_id=uid).first()
+    uid = file_exist
   except:
     uid = None
-  finally:
-    uid = file_exist
 
   return render_template('index.html', uid=uid)
 
@@ -152,13 +154,12 @@ def login():
   Flask redirect for the login page
 
   Loads the login page and prompts for email, password, with an option to be remembered
-
+  If user has reset their password but has not set a new one, redirect to a page to set it instead.
 
   Returns:
     html template: The page the user attempted to go to (if it required login), otherwise the index page if successful
       If login fails, returns the login page again.
   """
-
   loginform = LoginForm()
 
   if loginform.validate_on_submit():
@@ -167,24 +168,123 @@ def login():
     remember_me = loginform.remember_check.data
 
     registered_user = User.query.filter(User.email.ilike(email)).first()
-    if registered_user:  # Make sure a user with the email exists
-      #Verify password, try to log in, redirect as needed
-      if (registered_user.check_password(password)):
-        login_user(registered_user, remember=remember_me)
-        registered_user.last_seen = datetime.utcnow
-        return redirect(request.args.get('next') or url_for('index'))
+    #User exists
+    if registered_user:
+      #If password has been changed since reset,
+      if registered_user.password_changed >= registered_user.password_reset:
+        #Verify password, try to log in, redirect as needed
+        if (registered_user.check_password(password)):
+          login_user(registered_user, remember=remember_me)
+          registered_user.last_seen = datetime.utcnow
+          return redirect(request.args.get('next') or url_for('index'))
+        else:
+          flash("Error: Password does not match records.")
+          return redirect(url_for('login', email=email))
+        #Password reset
       else:
-        flash("Error: Password does not match records.")
-        return redirect(url_for('login', email=email))  #! Prefill issues
+        flash('Password must be changed.')
+        return redirect(url_for('reset', email=email, pw=password))
     else:
       flash('Error: Provided email address does not correspond to any records.')
       return redirect(url_for('login'))
-
   return render_template('login.html', loginform=loginform)
 
 
+@app.route('/forgot_password', methods=['GET', 'POST'])
+@csrf.exempt
+def forgot_password():
+  """
+  Allows users to reset forgotten passwords
+  
+  If a user selects "forgot password" this page is loaded. The result is a form which prompts for the user's email address.
+  If the email is valid a temporary password is generated and emailed to the user, after which they have 24 hours to login and reset it.
+  
+  Returns:
+    html template: The login page html form if posted, else the forget.html form
+  """
+
+  if request.method == 'GET':
+    return render_template('forgot.html')
+
+  email = request.form['email']
+  user = User.query.filter(User.email.ilike(email)).first()
+  #If an email matches the database
+  if user:
+    temp_password = []
+    #Creates a 13 character password
+    n_num = random.randint(1, 5)
+    n_char = 13 - n_num
+    for i in range(n_num):  # Add numbers
+      temp_password.append(random.choice(string.digits))
+    for i in range(n_char):  # letters
+      temp_password.append(random.choice(string.ascii_letters))
+      #Order randomize
+    random.shuffle(temp_password)
+    #string it
+    temp_password = ''.join(temp_password)
+    print(temp_password)
+    #save to database
+    user.set_password(temp_password)
+    user.password_reset = datetime.utcnow()
+    db.session.commit()
+    msg = Message(
+        'Password Reset Request',
+        sender='daylancapstoneproject@gmail.com',
+        recipients=[email])
+    body_text = "Your temporary password is:    %r \nPassword must be changed within 24 hours." % (
+        temp_password)
+    msg.body = body_text
+    mail.send(msg)
+  flash('Password reset if email matches any records. Check email to reset.')
+  return redirect(url_for('login'))
+
+
+@app.route('/reset', methods=['GET', 'POST'])
+@csrf.exempt
+def reset():
+  """
+  Loads the HTML template that lets a user enter a new password after theirs has been reset
+  
+  After a user attempts to log in with a temporary password, the login page redirects to here. The user can then create a new password.
+  
+  Returns:
+    html template:
+  """
+
+  pw = request.args.get('pw')
+  reset_form = ResetForm()
+  #Post to update password
+  if reset_form.validate_on_submit():
+    email = request.form['email']
+    password = reset_form.password.data
+    user = User.query.filter(User.email.ilike(
+        request.args.get('email'))).first()
+    if user and user.check_password(pw):
+      user.set_password(password)
+      user.password_changed = datetime.utcnow()
+      db.session.commit()
+      flash('Success, please log in')
+      return redirect(url_for('login'))
+    else:  #This should not happen unless the user attempts to POST without using the form/accessing the page wrong
+      flash(
+          'Something went wrong, email does not exist or current password does not match'
+      )
+      return redirect(url_for('login'))
+  else:
+    user = User.query.filter(User.email.ilike(
+        request.args.get('email'))).first()
+    if pw and user.check_password(pw) and (
+        user.password_reset + timedelta(hours=24) >= datetime.utcnow()):
+      return render_template(
+          'reset.html', email=user.email, form=reset_form, pw=pw)
+    else:
+      flash(
+          'Something went wrong. Temporary password may have expired or does not match records.'
+      )
+      return redirect(url_for('login'))
+
+
 @app.route("/logout")
-@login_required
 @csrf.exempt
 def logOut():
   """
@@ -233,9 +333,7 @@ def account():
     if (user.check_password(password)):  #Verify password
       logout_user()
       db.session.delete(user)
-      db.session.commit()
-      flash('Account deleted'
-           )  #! Test this to ensure that associated test files are handled
+      db.session.commit()  #TODO Try to delete test files
       return redirect(url_for('login'))
     else:
       flash("Error, invalid password")

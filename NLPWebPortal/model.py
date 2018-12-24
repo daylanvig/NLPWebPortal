@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from NLPWebPortal import db
+from . import db
 from datetime import datetime, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from termcolor import colored
@@ -16,11 +16,15 @@ class User(db.Model):
   registered_on = db.Column(db.DateTime)
   last_seen = db.Column(db.DateTime)
   training = db.relationship('TrainingFile', backref='user', lazy=True)
+  password_reset = db.Column(db.DateTime)
+  password_changed = db.Column(db.DateTime)
 
   def __init__(self, email, password):
     self.email = email
     self.set_password(password)
     self.registered_on = datetime.utcnow()
+    self.password_reset = datetime.utcnow()
+    self.password_changed = datetime.utcnow()
 
   def is_active(self):
     return True
@@ -118,6 +122,17 @@ class UserQuery(Query):
 
 
 class TestQuery(Query):
+  """
+  TestQuery objects are used to store sample tests which can be run by a system admin to monitor the quality of the results being returned by the model so that
+  it can be adjusted
+  
+  When a user accesses the admin system, they can choose to add test queries (requiring the raw query text and expected results)
+  These TestQueries are later accessed when tests are run to compare actual results.
+  
+  Args:
+    query (String): Fragmented query, must represent missing information using _<C>_, _<W>_, _<S>_
+
+  """
 
   query_id = db.Column(
       db.Integer, db.ForeignKey('query.query_id'), primary_key=True)
@@ -138,13 +153,24 @@ class TestQuery(Query):
 
 
 class TestResult(db.Model):
+  """
+  Represents a completed test, created using a test query and the current language model
+
+  When a report is created, testResult objects are created to represent each individual query. Input data is received from TestQuery, results are stored here. 
+
+  Args:
+    query_id (int): The id number of a TestQuery object
+    result (String): Completed string as returned by the interpreter
+    report_id (int): Report number that this test belongs to
+
+  """
 
   test_id = db.Column(db.Integer, primary_key=True)
   query_id = db.Column(
       db.Integer, db.ForeignKey('test_query.query_id'), nullable=False)
   report_id = db.Column(
       db.Integer, db.ForeignKey('report.report_id'), nullable=False)
-  result = db.Column(db.String)
+  result = db.Column(db.Text)
   is_correct = db.Column(db.Boolean)
 
   def __init__(self, query_id, report_id, result):
@@ -154,6 +180,17 @@ class TestResult(db.Model):
 
 
 class Report(db.Model):
+  """
+  Creates a report of query accuracy
+  
+  Report used to hold summary data of test queries. The associated TestResult objects represent individual tests.
+
+  Args: 
+    manual (Boolean): True if the user chose to manually evaluate the test results(preferred), otherwise False.
+
+  Returns:
+    String: Colored output string depending on the results
+  """
 
   report_id = db.Column(db.Integer, primary_key=True)
   date = db.Column(db.Date, nullable=False)
@@ -230,6 +267,10 @@ class Report(db.Model):
     self.accuracy = accurate
 
   def __repr__(self):
+    """
+      Represents the summary of the report with colored text depending on the quality of the tests.
+    """
+
     n_tests = len(
         db.session.query(TestResult).filter(
             TestResult.report_id == self.report_id).all())

@@ -108,7 +108,7 @@ def run():
       pickle.dump(content, handle)
 
     #Mark as processed to stop repeats
-    #f.processed = True
+    f.processed = True
     db.session.commit()
 
   if users_added:

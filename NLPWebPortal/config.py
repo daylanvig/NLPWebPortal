@@ -13,6 +13,13 @@ REPORT_DIR = os.path.join(BASE_DIR, "Reports")
 SQLALCHEMY_DATABASE_URI = ('sqlite:///' + os.path.join(BASE_DIR, 'database.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+MAIL_SERVER = 'smtp.gmail.com'
+MAIL_PORT = 465
+MAIL_USERNAME = 'daylancapstoneproject@gmail.com'
+MAIL_PASSWORD = 'fymozvjwfvfebdvs'
+MAIL_USE_TLS = False
+MAIL_USE_SSL = True
+
 #Test if the directory exists or make it if it doesn't
 if not os.path.exists(BASE_DIR):
   os.mkdir(BASE_DIR)
