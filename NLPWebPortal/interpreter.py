@@ -94,14 +94,16 @@ def interpret_query_character(user_id, private_db, query_text, partial_word):
     String: The missing word as predicted by the model 
   """
   partial_word = partial_word.lower()
-  print(partial_word)
   possible = db.session.query(Dictionary).filter(
       Dictionary.word.ilike(partial_word)).all()
-  print(possible)
-  if len(possible) == 1:
-    return possible[0].word
-  words, weights, tokens = interpret_query_load(user_id, private_db)
-  return '0'
+  if possible:
+    max = possible[0].count
+    best = possible[0].word
+    for i in range(len(possible)):
+      if possible[i].count >= max:  #Return the most common match
+        best = possible[i].word
+        max = possible[i].count
+    return best
 
 
 def interpret_query(curr_user, query_text, private_check):
@@ -121,54 +123,28 @@ def interpret_query(curr_user, query_text, private_check):
   """
   query_list = ""
   result_list = []
+  query_text = query_text.split()
 
-  position = 0
-  pause_for = 0
   for c in query_text:
-    if pause_for == 0:  # If _< is detected, a pause must be taken to not copy the rest of the expression
-      if c == '_':
-        if (len(query_text) >=  #error handling
-            position + 2) and query_text[position + 1] == '<':
-          pause_for = 4
-          if query_text[position + 2] == 'C':
-            if query_list[-1] != ' ':  #if not the start of a word
-              partial_word = query_list.split()
-              partial_word = partial_word[-1]
-            else:
-              partial_word == ''
-            partial_word += '_'
-            try:
-              for c in query_text[position + 5:]:
-                #From the end of the >_ notation until the end of the word
-                if c == ' ':
-                  break
-                else:
-                  partial_word += c
-            except:  #End of word (ie no position+4)
-              pass
-            partial_word = partial_word.replace('_<C>_', '_')  #multi char
-            result = interpret_query_character(curr_user, private_check,
-                                               query_list, partial_word)
-            pause_for = len(result) - 1
-            query_list += result
-            result_list.append(result)
-          elif query_text[position + 2] == 'W':
-            result = interpret_query_word(curr_user, private_check, query_list)
-            query_list += result + " "
-            result_list.append(result)
-          elif query_text[position + 2] == 'S':
-            result = interpret_query_sentence(curr_user, private_check,
-                                              query_list)
-            query_list += result + ". "
-            result_list.append(result)
-      else:
-        query_list += c
-    position += 1
-    if pause_for > 0:
-      pause_for -= 1
+    if c == '_<W>_':  #Missing word
+      result = interpret_query_word(curr_user, private_check, query_list)
+      query_list += result + " "
+      result_list.append(result)
+    elif c == '_<S>_':  #Missing sentence
+      result = interpret_query_sentence(curr_user, private_check, query_list)
+      query_list += result + ". "
+      result_list.append(result)
+    elif '_<C>_' in c:  #Missing character(s)
+      partial_word = c.replace('_<C>_', '_')
+      result = interpret_query_character(curr_user, private_check, query_list,
+                                         partial_word)
+      query_list += result + " "
+      result_list.append(result)
+    else:
+      query_list += c + " "
 
-  if (curr_user
-     ):  # If there's a current user the results should be stored for history
+  if (curr_user):
+    # If there's a current user the results should be stored for history
     result_list = ', '.join(result_list)
     db.session.add(UserQuery(query_text, curr_user, private_check, result_list))
     db.session.commit()
