@@ -89,9 +89,10 @@ def interpret_query_character(user_id, private_db, query_text, partial_word):
       or otherwise will be None
     private_db (Boolean): Will be True if the user wishes to only use their own files in interpreting the query
     query_text (String): String of text that comes before the missing word
+    parital_word (String): The fragmented word in full.
 
   Returns:
-    String: The missing word as predicted by the model 
+    String: The missing word as predicted by the model. Will fill with unknown otherwise.
   """
   partial_word = partial_word.lower()
   possible = db.session.query(Dictionary).filter(
@@ -104,6 +105,8 @@ def interpret_query_character(user_id, private_db, query_text, partial_word):
         best = possible[i].word
         max = possible[i].count
     return best
+  else:
+    return partial_word.replace('_', '<UNK>')
 
 
 def interpret_query(curr_user, query_text, private_check):

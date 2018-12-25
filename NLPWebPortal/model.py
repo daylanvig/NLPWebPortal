@@ -1,12 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from . import db
-from datetime import datetime, date
-from werkzeug.security import generate_password_hash, check_password_hash
 from termcolor import colored
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from . import date, datetime, db
 
 
-#User account information
 class User(db.Model):
+  """
+  User account information
+  
+  Creates the database table that holds the account information for user accounts.
+  Maintains information such as password reset/change time and files owned/submitted to control access.
+  
+  Args:
+    email (String): The email address used to register
+    password (String): The user's requested password. This will be hashed and the hash will be stored, the plain text password will not.
+  
+  """
 
   __tablename__ = 'user'
 
@@ -51,6 +61,18 @@ class User(db.Model):
 
 #Store training file meta information
 class TrainingFile(db.Model):
+  """
+  Training file meta deta 
+  
+  When users uploaded files for the language model to be trained off of, the meta information is stored.
+
+  
+  Args:
+    user_id (int): The ID number of the user who uploaded the file.
+    file_name (string): The file's original name - The file will be stored on disk under a new name
+    extension (string): The extension of the uploaded file.
+  
+  """
 
   file_id = db.Column(db.Integer, primary_key=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
@@ -74,6 +96,17 @@ class TrainingFile(db.Model):
 
 
 class Dictionary(db.Model):
+  """
+  Dictionary holding words found in the input data and their frequency/count
+  
+  Each time a word is found in a file its count is incremented. Stored words are later accessed when the interpreter identifies a word that is
+  missing characters.
+  
+  Args:
+    word (String): The word
+    count (int): Number of times the word has been in training data
+
+  """
 
   word = db.Column(db.String, primary_key=True)
   count = db.Column(db.Integer, nullable=False)
@@ -90,6 +123,10 @@ class Dictionary(db.Model):
 
 
 class Query(db.Model):
+  """
+   Base query, accessed by/extended by UserQuery and TestQuery
+   
+  """
 
   __tablename__ = 'query'
 
@@ -104,6 +141,17 @@ class Query(db.Model):
 
 
 class UserQuery(Query):
+  """
+  UserQueries represent queries which have been submitted by logged in users.
+  
+  When a valid user submits a query, the results are stored here so that they can be accessed by the account method so that users can view their history
+  
+  Args:
+    query (String): The raw fragmented query
+    user_id (int): The ID number of the user who submitted the query
+    use_private (Boolean): True if the user requested to use their private database, else False
+    result (String): The result returned by the interpreter
+  """
 
   query_id = db.Column(
       db.Integer, db.ForeignKey('query.query_id'), primary_key=True)

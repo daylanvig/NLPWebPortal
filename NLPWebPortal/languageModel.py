@@ -13,41 +13,60 @@ from . import app
 
 
 class LanguageModel():
+  """
+  Neural network language model capable of generating missing word values.
+
+  After a text file has been processed by the preprocessor, it can be loaded into the constructor and then train_model can be called to create weights and store the language model.
+  Later, the predict_word function can be called to access the model and predict the next word in a sequence.
+
+  Args:
+    clean_text ([String]): List of strings, each of which represents a sequence to be accessed for word embeddings.
+  """
 
   def __init__(self, clean_text):
     K.clear_session()
 
-    # integer encoding
+    # Tokenize and encode the sequences into integers
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(clean_text)
     sequences = tokenizer.texts_to_sequences(clean_text)
-    # vocabulary size
+
     vocab_size = len(tokenizer.word_index) + 1
 
-    # separate into input and output
+    # Splits the sequences into the training information and the target results
     sequences = array(sequences)
     train, target = sequences[:, :-1], sequences[:, -1]
     target = to_categorical(target, num_classes=vocab_size)
     seq_length = train.shape[1]
 
-    # define model
+    # Create the model using the word embedding information.
     model = Sequential()
     model.add(Embedding(vocab_size, 50, input_length=seq_length))
     model.add(LSTM(100, return_sequences=True))
     model.add(LSTM(100))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(vocab_size, activation='softmax'))
-    print(model.summary())
     self.train = train
     self.target = target
     self.model = model
     self.tokenizer = tokenizer
 
   def train_model(self, user_id):
+    """
+    Trains the language model
+    
+    Calling train_model results in the model being compiled and trained. Results are saved as a model file associated with the owning user's ID
+    
+    Args:
+      user_id (int): ID Number of the user whose data is training the model. This is used to save the file so that it can only be accessed by the owner.
+    """
+
     model = self.model
     train = self.train
     target = self.target
     tokenizer = self.tokenizer
+
+    #Compile model
     model.compile(
         loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     filepath = os.path.join(app.config['MODEL_DIR'],
@@ -62,6 +81,22 @@ class LanguageModel():
     dump(tokenizer, open(tokenizer_file, 'wb'))
 
   def predict_word(sequences, weights, tokenizer, query_text, words_wanted=1):
+    """
+    Attempts to predict the next word in of a query.
+    
+    Loads the information of a model, including the raw sequences, the model itself, and a tokenizer, and uses that information to generate
+    a specified number of words, based on a seed of query_text
+    
+    Args:
+      sequences (String): A string representing the location of a pickle.dump file that stores a serialized list of sequences.
+      weights (String): A string representing the location of the requested model
+      tokenizer (String): String for the directory of the tokenizer used to create the model
+      query_text (String): A string of words submitted by a user to serve as a seed. Attempts to predict the next word.
+      words_wanted (int, optional): Defaults to 1. The amount of words wanted. If a sentence is wanted the number will change, otherwise the default is used.
+    
+    Returns:
+      String: The next word(s) that best fit the sequence based on the model's weights.
+    """
 
     with open(sequences, 'rb') as handle:
       sequence_list = load(handle)

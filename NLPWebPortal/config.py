@@ -8,11 +8,13 @@ BASE_DIR = os.path.join(BASE, 'FileServer')
 UPLOAD_DIR = os.path.join(BASE_DIR, "TrainingFiles")
 MODEL_DIR = os.path.join(BASE_DIR, "LanguageModels")
 REPORT_DIR = os.path.join(BASE_DIR, "Reports")
-#--------------
+#----------------------------------------
 
+#Database--
 SQLALCHEMY_DATABASE_URI = ('sqlite:///' + os.path.join(BASE_DIR, 'database.db'))
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
+#Mail setup--
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 465
 MAIL_USERNAME = 'daylancapstoneproject@gmail.com'

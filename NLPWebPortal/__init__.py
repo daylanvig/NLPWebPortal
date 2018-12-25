@@ -9,6 +9,7 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeSerializer
 from datetime import date, datetime, timedelta
 
+#Config
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
 csrf = CSRFProtect(app)

@@ -73,6 +73,9 @@ class LoginForm(FlaskForm):
 
 
 class ResetForm(FlaskForm):
+  """
+  Password validator when resetting user password
+  """
 
   password = PasswordField('Password', [
       InputRequired("Please enter your password"),
